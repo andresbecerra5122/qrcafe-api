@@ -1,0 +1,6 @@
+@QrCafe.Api_HostAddress = http://localhost:5015
+
+GET {{QrCafe.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
