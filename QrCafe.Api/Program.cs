@@ -28,17 +28,21 @@ var dataSourceBuilder = new NpgsqlDataSourceBuilder(cs);
 
 var dataSource = dataSourceBuilder.Build();
 
-Console.WriteLine("ConnectionString: " + cs);
+if (builder.Environment.IsDevelopment())
+    Console.WriteLine("ConnectionString: " + cs);
 
 builder.Services.AddDbContext<QrCafeDbContext>(opt =>
 {
     opt.UseNpgsql(dataSource);
 });
 
+var allowedOrigins = builder.Configuration.GetValue<string>("ALLOWED_ORIGINS")
+    ?? "http://localhost:4200,http://localhost:4201";
+
 builder.Services.AddCors(opt =>
 {
     opt.AddPolicy("AllowAngular", p =>
-        p.WithOrigins("http://localhost:4200")
+        p.WithOrigins(allowedOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
          .AllowAnyHeader()
          .AllowAnyMethod()
     );
@@ -56,7 +60,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseMiddleware<ApiExceptionMiddleware>();
 
-app.UseHttpsRedirection();
+if (app.Environment.IsDevelopment())
+    app.UseHttpsRedirection();
 app.UseCors("AllowAngular");
 app.MapControllers();
 

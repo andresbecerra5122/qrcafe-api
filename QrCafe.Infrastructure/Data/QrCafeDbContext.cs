@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using QrCafe.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -19,6 +19,7 @@ namespace QrCafe.Infrastructure.Data
         public DbSet<Order> Orders => Set<Order>();
         public DbSet<OrderItem> OrderItems => Set<OrderItem>();
         public DbSet<Payment> Payments => Set<Payment>();
+        public DbSet<WaiterCall> WaiterCalls => Set<WaiterCall>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -98,9 +99,12 @@ namespace QrCafe.Infrastructure.Data
                 e.Property(x => x.Subtotal).HasColumnName("subtotal");
                 e.Property(x => x.Tax).HasColumnName("tax");
                 e.Property(x => x.Total).HasColumnName("total");
+                e.Property(x => x.PaymentMethod).HasColumnName("payment_method").HasConversion<string?>();
+                e.Property(x => x.PaymentRequestedAt).HasColumnName("payment_requested_at");
                 e.Property(x => x.CreatedAt).HasColumnName("created_at");
                 e.Property(x => x.PaidAt).HasColumnName("paid_at");
                 e.Property(x => x.UpdatedAt).HasColumnName("updated_at");
+                e.Property(x => x.OrderNumber).HasColumnName("order_number");
             });
 
             modelBuilder.Entity<OrderItem>(e =>
@@ -137,6 +141,19 @@ namespace QrCafe.Infrastructure.Data
                 e.Property(x => x.Currency).HasColumnName("currency");
                 e.Property(x => x.CreatedAt).HasColumnName("created_at");
                 e.Property(x => x.UpdatedAt).HasColumnName("updated_at");
+            });
+
+            modelBuilder.Entity<WaiterCall>(e =>
+            {
+                e.ToTable("waiter_calls");
+                e.HasKey(x => x.Id);
+                e.Property(x => x.Id).HasColumnName("id");
+                e.Property(x => x.RestaurantId).HasColumnName("restaurant_id");
+                e.Property(x => x.TableId).HasColumnName("table_id");
+                e.Property(x => x.TableNumber).HasColumnName("table_number");
+                e.Property(x => x.Status).HasColumnName("status");
+                e.Property(x => x.CreatedAt).HasColumnName("created_at");
+                e.Property(x => x.AttendedAt).HasColumnName("attended_at");
             });
         }
     }

@@ -1,8 +1,9 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using QrCafe.Api.Dto.Orders;
 using QrCafe.Api.Mappers;
 using QrCafe.Application.Orders.Commands.CreateOrder;
+using QrCafe.Application.Orders.Commands.RequestPayment;
 using QrCafe.Application.Orders.Queries.GetOrderById;
 
 namespace QrCafe.Api.Controllers.Public
@@ -39,6 +40,13 @@ namespace QrCafe.Api.Controllers.Public
             if (result is null) return NotFound();
 
             return Ok(OrdersMapper.ToDto(result));
+        }
+
+        [HttpPost("{orderId:guid}/request-payment")]
+        public async Task<IActionResult> RequestPayment(Guid orderId, [FromBody] RequestPaymentDto req, CancellationToken ct)
+        {
+            await _mediator.Send(new RequestPaymentCommand(orderId, req.PaymentMethod), ct);
+            return NoContent();
         }
     }
 }

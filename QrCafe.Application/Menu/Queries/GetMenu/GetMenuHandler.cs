@@ -1,5 +1,6 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
+using QrCafe.Domain.Entities;
 using QrCafe.Infrastructure.Data;
 
 namespace QrCafe.Application.Menu.Queries.GetMenu
@@ -30,7 +31,11 @@ namespace QrCafe.Application.Menu.Queries.GetMenu
                 ))
                 .ToListAsync(ct);
 
-            return new GetMenuResult(request.RestaurantId, categories, products);
+            var restaurant = await _db.Restaurants
+                .AsNoTracking()
+                .SingleAsync(r => r.Id == request.RestaurantId && r.IsActive, ct);
+
+            return new GetMenuResult(request.RestaurantId, restaurant.Name, restaurant.Currency, categories, products);
         }
     }
 }

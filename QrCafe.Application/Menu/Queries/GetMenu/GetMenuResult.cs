@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -21,6 +21,8 @@ namespace QrCafe.Application.Menu.Queries.GetMenu
 
     public record GetMenuResult(
         Guid RestaurantId,
+        string RestaurantName,
+        string Currency,
         IReadOnlyList<GetMenuCategoryItem> Categories,
         IReadOnlyList<GetMenuProductItem> Products
     );

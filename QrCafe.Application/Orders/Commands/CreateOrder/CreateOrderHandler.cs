@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using QrCafe.Domain.Entities.Enums;
 using QrCafe.Domain.Entities;
 using QrCafe.Infrastructure.Data;
@@ -84,6 +84,14 @@ namespace QrCafe.Application.Orders.Commands.CreateOrder
             var tax = Math.Round(subtotal * restaurant.TaxRate, 2);
             var total = subtotal + tax;
 
+            var numbers = await _db.Database.SqlQueryRaw<long>(@"
+                UPDATE public.restaurant_order_counters
+                SET last_number = last_number + 1
+                WHERE restaurant_id = {0}
+                RETURNING last_number;
+            ", restaurant.Id).ToListAsync(ct);
+            var nextNumber = numbers.Single();
+
             var order = new Order
             {
                 Id = Guid.NewGuid(),
@@ -92,18 +100,20 @@ namespace QrCafe.Application.Orders.Commands.CreateOrder
                 TableId = table?.Id,
                 CustomerName = string.IsNullOrWhiteSpace(req.CustomerName) ? null : req.CustomerName.Trim(),
                 Notes = string.IsNullOrWhiteSpace(req.Notes) ? null : req.Notes.Trim(),
-                Status = OrderStatus.PAYMENT_PENDING,
+                Status = OrderStatus.CREATED,
                 Currency = restaurant.Currency,
                 Subtotal = subtotal,
                 Tax = tax,
                 Total = total,
                 CreatedAt = DateTimeOffset.UtcNow,
-                UpdatedAt = DateTimeOffset.UtcNow
+                UpdatedAt = DateTimeOffset.UtcNow,
+                OrderNumber = nextNumber
             };
 
             foreach (var oi in orderItems) oi.OrderId = order.Id;
 
             await using var tx = await _db.Database.BeginTransactionAsync(ct);
+
 
             // 1) Inserta primero la orden
             _db.Orders.Add(order);
@@ -115,7 +125,7 @@ namespace QrCafe.Application.Orders.Commands.CreateOrder
 
             await tx.CommitAsync(ct);
 
-            return new CreateOrderResult(order.Id, order.Status.ToString(), order.Currency, order.Subtotal, order.Tax, order.Total);
+            return new CreateOrderResult(order.Id, order.Status.ToString(), order.Currency, order.Subtotal, order.Tax, order.Total, order.OrderNumber);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace QrCafe.Api.Dto.Orders
+namespace QrCafe.Api.Dto.Orders
 {
     public record OrderPublicDto(
         Guid OrderId,
@@ -6,8 +6,11 @@
         int? TableNumber,
         string? CustomerName,
         string Status,
+        string? PaymentStatus,
+        string? PaymentMethod,
         string Currency,
         decimal Total,
-        DateTimeOffset CreatedAt
+        DateTimeOffset CreatedAt,
+        long OrderNumber
     );
 }

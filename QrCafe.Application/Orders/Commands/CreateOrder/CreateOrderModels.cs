@@ -23,6 +23,7 @@ namespace QrCafe.Application.Orders.Commands.CreateOrder
         string Currency,
         decimal Subtotal,
         decimal Tax,
-        decimal Total
+        decimal Total,
+        long OrderNumber
     );
 }

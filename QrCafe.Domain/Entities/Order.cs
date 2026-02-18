@@ -1,4 +1,4 @@
-﻿using QrCafe.Domain.Entities.Enums;
+using QrCafe.Domain.Entities.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,8 +28,13 @@ namespace QrCafe.Domain.Entities
         public decimal Tax { get; set; }
         public decimal Total { get; set; }
 
+        public PaymentMethod? PaymentMethod { get; set; }
+        public DateTimeOffset? PaymentRequestedAt { get; set; }
+
         public DateTimeOffset CreatedAt { get; set; }
         public DateTimeOffset? PaidAt { get; set; }
         public DateTimeOffset UpdatedAt { get; set; }
+
+        public long OrderNumber { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,8 +12,11 @@ namespace QrCafe.Application.Orders.Queries.GetOrderById
     int? TableNumber,
     string? CustomerName,
     string Status,
+    string? PaymentStatus,
+    string? PaymentMethod,
     string Currency,
     decimal Total,
-    DateTimeOffset CreatedAt
+    DateTimeOffset CreatedAt,
+    long OrderNumber
 );
 }

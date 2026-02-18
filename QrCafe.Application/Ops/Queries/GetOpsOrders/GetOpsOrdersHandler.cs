@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QrCafe.Domain.Entities.Enums;
 using QrCafe.Infrastructure.Data;
@@ -44,6 +44,8 @@ namespace QrCafe.Application.Ops.Queries.GetOpsOrders
                         t != null ? t.Number : null,
                         o.CustomerName,
                         o.Status.ToString(),
+                        o.PaymentMethod != null ? o.PaymentMethod.ToString() : null,
+                        o.PaymentRequestedAt,
                         o.Currency,
                         o.Total,
                         o.CreatedAt
