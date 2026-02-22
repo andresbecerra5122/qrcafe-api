@@ -6,18 +6,21 @@ using System.Threading.Tasks;
 
 namespace QrCafe.Application.Ops.Queries.GetOpsOrders
 {
+    public record OpsOrderItemDetail(string ProductName, int Qty, string? Notes);
+
     public record GetOpsOrdersItem(
-    Guid OrderId,
-    string OrderType,
-    int? TableNumber,
-    string? CustomerName,
-    string Status,
-    string? PaymentMethod,
-    DateTimeOffset? PaymentRequestedAt,
-    string Currency,
-    decimal Total,
-    DateTimeOffset CreatedAt
-);
+        Guid OrderId,
+        string OrderType,
+        int? TableNumber,
+        string? CustomerName,
+        string Status,
+        string? PaymentMethod,
+        DateTimeOffset? PaymentRequestedAt,
+        string Currency,
+        decimal Total,
+        DateTimeOffset CreatedAt,
+        IReadOnlyList<OpsOrderItemDetail> Items
+    );
 
     public record GetOpsOrdersResult(IReadOnlyList<GetOpsOrdersItem> Items);
 }

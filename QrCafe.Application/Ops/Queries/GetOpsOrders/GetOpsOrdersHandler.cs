@@ -38,20 +38,47 @@ namespace QrCafe.Application.Ops.Queries.GetOpsOrders
                     join t in _db.Tables.AsNoTracking() on o.TableId equals t.Id into tt
                     from t in tt.DefaultIfEmpty()
                     orderby o.CreatedAt descending
-                    select new GetOpsOrdersItem(
+                    select new
+                    {
                         o.Id,
-                        o.OrderType.ToString(),
-                        t != null ? t.Number : null,
+                        OrderType = o.OrderType.ToString(),
+                        TableNumber = t != null ? (int?)t.Number : null,
                         o.CustomerName,
-                        o.Status.ToString(),
-                        o.PaymentMethod != null ? o.PaymentMethod.ToString() : null,
+                        Status = o.Status.ToString(),
+                        PaymentMethod = o.PaymentMethod != null ? o.PaymentMethod.ToString() : null,
                         o.PaymentRequestedAt,
                         o.Currency,
                         o.Total,
                         o.CreatedAt
-                    );
+                    };
 
-            var list = await q.Take(200).ToListAsync(ct);
+            var orders = await q.Take(200).ToListAsync(ct);
+            var orderIds = orders.Select(o => o.Id).ToList();
+
+            var itemsByOrder = await _db.OrderItems.AsNoTracking()
+                .Where(i => orderIds.Contains(i.OrderId))
+                .GroupBy(i => i.OrderId)
+                .ToDictionaryAsync(
+                    g => g.Key,
+                    g => (IReadOnlyList<OpsOrderItemDetail>)g
+                        .Select(i => new OpsOrderItemDetail(i.ProductNameSnap, i.Qty, i.Notes))
+                        .ToList(),
+                    ct);
+
+            var list = orders.Select(o => new GetOpsOrdersItem(
+                o.Id,
+                o.OrderType,
+                o.TableNumber,
+                o.CustomerName,
+                o.Status,
+                o.PaymentMethod,
+                o.PaymentRequestedAt,
+                o.Currency,
+                o.Total,
+                o.CreatedAt,
+                itemsByOrder.GetValueOrDefault(o.Id, Array.Empty<OpsOrderItemDetail>())
+            )).ToList();
+
             return new GetOpsOrdersResult(list);
         }
     }
