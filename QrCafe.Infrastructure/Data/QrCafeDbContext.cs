@@ -20,6 +20,7 @@ namespace QrCafe.Infrastructure.Data
         public DbSet<OrderItem> OrderItems => Set<OrderItem>();
         public DbSet<Payment> Payments => Set<Payment>();
         public DbSet<WaiterCall> WaiterCalls => Set<WaiterCall>();
+        public DbSet<StaffUser> StaffUsers => Set<StaffUser>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -154,6 +155,23 @@ namespace QrCafe.Infrastructure.Data
                 e.Property(x => x.Status).HasColumnName("status");
                 e.Property(x => x.CreatedAt).HasColumnName("created_at");
                 e.Property(x => x.AttendedAt).HasColumnName("attended_at");
+            });
+
+            modelBuilder.Entity<StaffUser>(e =>
+            {
+                e.ToTable("staff_users");
+                e.HasKey(x => x.Id);
+                e.HasIndex(x => new { x.RestaurantId, x.Email }).IsUnique();
+                e.Property(x => x.Id).HasColumnName("id");
+                e.Property(x => x.RestaurantId).HasColumnName("restaurant_id");
+                e.Property(x => x.FullName).HasColumnName("full_name");
+                e.Property(x => x.Email).HasColumnName("email");
+                e.Property(x => x.PasswordHash).HasColumnName("password_hash");
+                e.Property(x => x.Role).HasColumnName("role").HasConversion<string>();
+                e.Property(x => x.IsActive).HasColumnName("is_active");
+                e.Property(x => x.CreatedAt).HasColumnName("created_at");
+                e.Property(x => x.UpdatedAt).HasColumnName("updated_at");
+                e.Property(x => x.LastLoginAt).HasColumnName("last_login_at");
             });
         }
     }

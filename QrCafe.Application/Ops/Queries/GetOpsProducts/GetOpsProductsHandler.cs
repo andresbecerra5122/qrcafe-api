@@ -14,7 +14,8 @@ namespace QrCafe.Application.Ops.Queries.GetOpsProducts
             var q = from p in _db.Products.AsNoTracking()
                     join c in _db.Categories.AsNoTracking() on p.CategoryId equals c.Id into cc
                     from c in cc.DefaultIfEmpty()
-                    where p.RestaurantId == request.RestaurantId && p.IsActive
+                    where p.RestaurantId == request.RestaurantId
+                        && (request.IncludeInactive || p.IsActive)
                     orderby c.Sort, p.Sort, p.Name
                     select new OpsProductItem(
                         p.Id,

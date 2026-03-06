@@ -9,8 +9,19 @@ namespace QrCafe.Api.Dto.Orders
         string? PaymentStatus,
         string? PaymentMethod,
         string Currency,
+        decimal Subtotal,
+        decimal Tax,
         decimal Total,
         DateTimeOffset CreatedAt,
-        long OrderNumber
+        long OrderNumber,
+        string RestaurantName,
+        IReadOnlyList<OrderItemPublicDto> Items
+    );
+
+    public record OrderItemPublicDto(
+        string ProductName,
+        int Qty,
+        decimal UnitPrice,
+        decimal LineTotal
     );
 }

@@ -1,22 +1,27 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace QrCafe.Application.Orders.Queries.GetOrderById
 {
     public record GetOrderByIdResult(
-    Guid OrderId,
-    string OrderType,
-    int? TableNumber,
-    string? CustomerName,
-    string Status,
-    string? PaymentStatus,
-    string? PaymentMethod,
-    string Currency,
-    decimal Total,
-    DateTimeOffset CreatedAt,
-    long OrderNumber
-);
+        Guid OrderId,
+        string OrderType,
+        int? TableNumber,
+        string? CustomerName,
+        string Status,
+        string? PaymentStatus,
+        string? PaymentMethod,
+        string Currency,
+        decimal Subtotal,
+        decimal Tax,
+        decimal Total,
+        DateTimeOffset CreatedAt,
+        long OrderNumber,
+        string RestaurantName,
+        IReadOnlyList<OrderItemResult> Items
+    );
+
+    public record OrderItemResult(
+        string ProductName,
+        int Qty,
+        decimal UnitPrice,
+        decimal LineTotal
+    );
 }

@@ -1,6 +1,8 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using QrCafe.Api.Auth;
 using QrCafe.Api.Dto.Ops;
 using QrCafe.Api.Mappers;
 using QrCafe.Application.Ops.Commands.UpdateOrderStatus;
@@ -13,6 +15,7 @@ namespace QrCafe.Api.Controllers.Public
 {
     [ApiController]
     [Route("ops/orders")]
+    [Authorize(Policy = AuthConstants.PolicyStaffAny)]
     public class OpsOrdersController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -29,6 +32,11 @@ namespace QrCafe.Api.Controllers.Public
             [FromQuery] string? status,
             CancellationToken ct)
         {
+            if (User.GetRestaurantId() != restaurantId)
+            {
+                return Forbid();
+            }
+
             var result = await _mediator.Send(new GetOpsOrdersQuery(restaurantId, status), ct);
             var dto = result.Items.Select(OpsOrdersMapper.ToDto).ToList();
             return Ok(dto);
@@ -37,6 +45,11 @@ namespace QrCafe.Api.Controllers.Public
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateOpsOrderRequestDto req, CancellationToken ct)
         {
+            if (User.GetRestaurantId() != req.RestaurantId)
+            {
+                return Forbid();
+            }
+
             string? tableToken = null;
             string orderType = "TAKEAWAY";
 
@@ -69,13 +82,30 @@ namespace QrCafe.Api.Controllers.Public
         [HttpPatch("{orderId:guid}/status")]
         public async Task<IActionResult> UpdateStatus(Guid orderId, [FromBody] UpdateOrderStatusRequestDto req, CancellationToken ct)
         {
+            var restaurantId = User.GetRestaurantId();
+            var hasAccess = await _db.Orders.AsNoTracking()
+                .AnyAsync(o => o.Id == orderId && o.RestaurantId == restaurantId, ct);
+            if (!hasAccess)
+            {
+                return NotFound();
+            }
+
             await _mediator.Send(new UpdateOrderStatusCommand(orderId, req.Status), ct);
             return NoContent();
         }
 
         [HttpPatch("{orderId:guid}/collect")]
+        [Authorize(Policy = AuthConstants.PolicyWaiterOrAdmin)]
         public async Task<IActionResult> Collect(Guid orderId, [FromBody] CollectOrderDto req, CancellationToken ct)
         {
+            var restaurantId = User.GetRestaurantId();
+            var hasAccess = await _db.Orders.AsNoTracking()
+                .AnyAsync(o => o.Id == orderId && o.RestaurantId == restaurantId, ct);
+            if (!hasAccess)
+            {
+                return NotFound();
+            }
+
             await _mediator.Send(new CollectOrderCommand(orderId, req.PaymentMethod), ct);
             return NoContent();
         }

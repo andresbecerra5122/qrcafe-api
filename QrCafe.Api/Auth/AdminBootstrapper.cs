@@ -1,0 +1,113 @@
+using Microsoft.EntityFrameworkCore;
+using QrCafe.Domain.Entities;
+using QrCafe.Domain.Entities.Enums;
+using QrCafe.Infrastructure.Data;
+
+namespace QrCafe.Api.Auth
+{
+    public class AdminBootstrapper
+    {
+        private readonly IConfiguration _configuration;
+        private readonly IPasswordHasher _passwordHasher;
+
+        public AdminBootstrapper(IConfiguration configuration, IPasswordHasher passwordHasher)
+        {
+            _configuration = configuration;
+            _passwordHasher = passwordHasher;
+        }
+
+        public async Task RunAsync(IServiceProvider serviceProvider, CancellationToken ct = default)
+        {
+            await using var scope = serviceProvider.CreateAsyncScope();
+            var db = scope.ServiceProvider.GetRequiredService<QrCafeDbContext>();
+
+            await EnsureStaffTableAsync(db, ct);
+            await SeedInitialAdminAsync(db, ct);
+        }
+
+        private static async Task EnsureStaffTableAsync(QrCafeDbContext db, CancellationToken ct)
+        {
+            const string sql = """
+                CREATE TABLE IF NOT EXISTS public.staff_users (
+                    id uuid PRIMARY KEY,
+                    restaurant_id uuid NOT NULL,
+                    full_name text NOT NULL,
+                    email text NOT NULL,
+                    password_hash text NOT NULL,
+                    role text NOT NULL,
+                    is_active boolean NOT NULL,
+                    created_at timestamptz NOT NULL,
+                    updated_at timestamptz NOT NULL,
+                    last_login_at timestamptz NULL
+                );
+
+                CREATE UNIQUE INDEX IF NOT EXISTS ux_staff_users_restaurant_email
+                    ON public.staff_users (restaurant_id, email);
+                """;
+
+            await db.Database.ExecuteSqlRawAsync(sql, ct);
+        }
+
+        private async Task SeedInitialAdminAsync(QrCafeDbContext db, CancellationToken ct)
+        {
+            var restaurantIdRaw = _configuration["BOOTSTRAP_ADMIN_RESTAURANT_ID"];
+            var emailRaw = _configuration["BOOTSTRAP_ADMIN_EMAIL"];
+            var password = _configuration["BOOTSTRAP_ADMIN_PASSWORD"];
+            var fullName = _configuration["BOOTSTRAP_ADMIN_FULL_NAME"] ?? "Initial Admin";
+            var roleRaw = _configuration["BOOTSTRAP_ADMIN_ROLE"] ?? StaffRole.Manager.ToString();
+
+            if (string.IsNullOrWhiteSpace(restaurantIdRaw)
+                || string.IsNullOrWhiteSpace(emailRaw)
+                || string.IsNullOrWhiteSpace(password))
+            {
+                return;
+            }
+
+            if (!Guid.TryParse(restaurantIdRaw, out var restaurantId))
+            {
+                return;
+            }
+
+            var email = emailRaw.Trim().ToLowerInvariant();
+
+            var restaurantExists = await db.Restaurants
+                .AsNoTracking()
+                .AnyAsync(r => r.Id == restaurantId, ct);
+
+            if (!restaurantExists)
+            {
+                return;
+            }
+
+            var userExists = await db.StaffUsers.AnyAsync(
+                u => u.RestaurantId == restaurantId && u.Email == email,
+                ct
+            );
+            if (userExists)
+            {
+                return;
+            }
+
+            if (!Enum.TryParse<StaffRole>(roleRaw, true, out var role))
+            {
+                role = StaffRole.Manager;
+            }
+
+            var now = DateTimeOffset.UtcNow;
+            db.StaffUsers.Add(new StaffUser
+            {
+                Id = Guid.NewGuid(),
+                RestaurantId = restaurantId,
+                FullName = fullName.Trim(),
+                Email = email,
+                PasswordHash = _passwordHasher.Hash(password),
+                Role = role,
+                IsActive = true,
+                CreatedAt = now,
+                UpdatedAt = now
+            });
+
+            await db.SaveChangesAsync(ct);
+        }
+    }
+}
