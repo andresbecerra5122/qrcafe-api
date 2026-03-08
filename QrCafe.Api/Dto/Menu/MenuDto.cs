@@ -4,6 +4,10 @@ namespace QrCafe.Api.Dto.Menu
         Guid RestaurantId,
         string RestaurantName,
         string Currency,
+        bool EnableDineIn,
+        bool EnableDelivery,
+        bool EnableDeliveryCash,
+        bool EnableDeliveryCard,
         IReadOnlyList<CategoryDto> Categories,
         IReadOnlyList<ProductDto> Products
     );

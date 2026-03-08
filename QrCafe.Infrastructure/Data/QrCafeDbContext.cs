@@ -38,6 +38,10 @@ namespace QrCafe.Infrastructure.Data
                 e.Property(x => x.TimeZone).HasColumnName("timezone");
                 e.Property(x => x.TaxRate).HasColumnName("tax_rate");
                 e.Property(x => x.IsActive).HasColumnName("is_active");
+                e.Property(x => x.EnableDineIn).HasColumnName("enable_dine_in");
+                e.Property(x => x.EnableDelivery).HasColumnName("enable_delivery");
+                e.Property(x => x.EnableDeliveryCash).HasColumnName("enable_delivery_cash");
+                e.Property(x => x.EnableDeliveryCard).HasColumnName("enable_delivery_card");
                 e.Property(x => x.CreatedAt).HasColumnName("created_at");
                 e.Property(x => x.UpdatedAt).HasColumnName("updated_at");
             });
@@ -95,6 +99,9 @@ namespace QrCafe.Infrastructure.Data
                 e.Property(x => x.TableId).HasColumnName("table_id");
                 e.Property(x => x.CustomerName).HasColumnName("customer_name");
                 e.Property(x => x.Notes).HasColumnName("notes");
+                e.Property(x => x.DeliveryAddress).HasColumnName("delivery_address");
+                e.Property(x => x.DeliveryReference).HasColumnName("delivery_reference");
+                e.Property(x => x.DeliveryPhone).HasColumnName("delivery_phone");
                 e.Property(x => x.Status).HasColumnName("status").HasConversion<string>();
                 e.Property(x => x.Currency).HasColumnName("currency");
                 e.Property(x => x.Subtotal).HasColumnName("subtotal");

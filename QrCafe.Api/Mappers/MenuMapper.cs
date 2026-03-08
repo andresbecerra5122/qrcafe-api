@@ -9,6 +9,10 @@ namespace QrCafe.Api.Mappers
             r.RestaurantId,
             r.RestaurantName,
             r.Currency,
+            r.EnableDineIn,
+            r.EnableDelivery,
+            r.EnableDeliveryCash,
+            r.EnableDeliveryCard,
             r.Categories.Select(c => new CategoryDto(c.Id, c.Name, c.Sort)).ToList(),
             r.Products.Select(p => new ProductDto(
                 p.Id, p.CategoryId, p.Name, p.Description, p.Price, p.IsAvailable, p.Sort, p.ImageUrl

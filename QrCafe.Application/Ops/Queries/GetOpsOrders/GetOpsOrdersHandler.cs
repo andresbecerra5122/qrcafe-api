@@ -18,6 +18,7 @@ namespace QrCafe.Application.Ops.Queries.GetOpsOrders
         public async Task<GetOpsOrdersResult> Handle(GetOpsOrdersQuery request, CancellationToken ct)
         {
             var statuses = new HashSet<OrderStatus>();
+            var orderTypes = new HashSet<OrderType>();
 
             if (!string.IsNullOrWhiteSpace(request.StatusCsv))
             {
@@ -28,11 +29,22 @@ namespace QrCafe.Application.Ops.Queries.GetOpsOrders
                 }
             }
 
+            if (!string.IsNullOrWhiteSpace(request.OrderTypeCsv))
+            {
+                foreach (var s in request.OrderTypeCsv.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                {
+                    if (Enum.TryParse<OrderType>(s, true, out var t))
+                        orderTypes.Add(t);
+                }
+            }
+
             var baseQ = _db.Orders.AsNoTracking()
                 .Where(o => o.RestaurantId == request.RestaurantId);
 
             if (statuses.Count > 0)
                 baseQ = baseQ.Where(o => statuses.Contains(o.Status));
+            if (orderTypes.Count > 0)
+                baseQ = baseQ.Where(o => orderTypes.Contains(o.OrderType));
 
             var q = from o in baseQ
                     join t in _db.Tables.AsNoTracking() on o.TableId equals t.Id into tt
@@ -44,6 +56,9 @@ namespace QrCafe.Application.Ops.Queries.GetOpsOrders
                         OrderType = o.OrderType.ToString(),
                         TableNumber = t != null ? (int?)t.Number : null,
                         o.CustomerName,
+                        o.DeliveryAddress,
+                        o.DeliveryReference,
+                        o.DeliveryPhone,
                         Status = o.Status.ToString(),
                         PaymentMethod = o.PaymentMethod != null ? o.PaymentMethod.ToString() : null,
                         o.PaymentRequestedAt,
@@ -70,6 +85,9 @@ namespace QrCafe.Application.Ops.Queries.GetOpsOrders
                 o.OrderType,
                 o.TableNumber,
                 o.CustomerName,
+                o.DeliveryAddress,
+                o.DeliveryReference,
+                o.DeliveryPhone,
                 o.Status,
                 o.PaymentMethod,
                 o.PaymentRequestedAt,

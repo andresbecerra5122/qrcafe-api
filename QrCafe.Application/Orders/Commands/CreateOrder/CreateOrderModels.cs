@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,10 +10,14 @@ namespace QrCafe.Application.Orders.Commands.CreateOrder
 
     public record CreateOrderInput(
         Guid RestaurantId,
-        string OrderType,             // "DINE_IN" | "TAKEAWAY"
+        string OrderType,             // "DINE_IN" | "TAKEAWAY" | "DELIVERY"
         string? TableToken,
         string? CustomerName,
         string? Notes,
+        string? DeliveryAddress,
+        string? DeliveryReference,
+        string? DeliveryPhone,
+        string? PaymentMethod,
         IReadOnlyList<CreateOrderItemInput> Items
     );
 

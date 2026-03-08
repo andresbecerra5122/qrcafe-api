@@ -19,7 +19,7 @@ namespace QrCafe.Application.Orders.Commands.CreateOrder
                 throw new ArgumentException("Items are required.");
 
             if (!Enum.TryParse<OrderType>(req.OrderType, true, out var orderType))
-                throw new ArgumentException("Invalid orderType. Use DINE_IN or TAKEAWAY.");
+                throw new ArgumentException("Invalid orderType. Use DINE_IN, TAKEAWAY or DELIVERY.");
 
             var restaurant = await _db.Restaurants
                 .SingleOrDefaultAsync(r => r.Id == req.RestaurantId && r.IsActive, ct)
@@ -29,6 +29,9 @@ namespace QrCafe.Application.Orders.Commands.CreateOrder
 
             if (orderType == OrderType.DINE_IN)
             {
+                if (!restaurant.EnableDineIn)
+                    throw new ArgumentException("DINE_IN is disabled for this restaurant.");
+
                 if (string.IsNullOrWhiteSpace(req.TableToken))
                     throw new ArgumentException("tableToken is required for DINE_IN.");
 
@@ -36,11 +39,36 @@ namespace QrCafe.Application.Orders.Commands.CreateOrder
                     t => t.RestaurantId == restaurant.Id && t.Token == req.TableToken && t.IsActive, ct);
 
                 if (table is null) throw new ArgumentException("Invalid table token.");
+                if (!string.IsNullOrWhiteSpace(req.PaymentMethod))
+                    throw new ArgumentException("paymentMethod is only allowed for DELIVERY.");
             }
-            else
+            else if (orderType == OrderType.TAKEAWAY)
             {
                 if (!string.IsNullOrWhiteSpace(req.TableToken))
                     throw new ArgumentException("tableToken must be null for TAKEAWAY.");
+
+                if (!string.IsNullOrWhiteSpace(req.PaymentMethod))
+                    throw new ArgumentException("paymentMethod is only allowed for DELIVERY.");
+            }
+            else if (orderType == OrderType.DELIVERY)
+            {
+                if (!restaurant.EnableDelivery)
+                    throw new ArgumentException("DELIVERY is disabled for this restaurant.");
+
+                if (!string.IsNullOrWhiteSpace(req.TableToken))
+                    throw new ArgumentException("tableToken must be null for DELIVERY.");
+                if (string.IsNullOrWhiteSpace(req.DeliveryAddress))
+                    throw new ArgumentException("deliveryAddress is required for DELIVERY.");
+                if (string.IsNullOrWhiteSpace(req.DeliveryPhone))
+                    throw new ArgumentException("deliveryPhone is required for DELIVERY.");
+                if (string.IsNullOrWhiteSpace(req.PaymentMethod))
+                    throw new ArgumentException("paymentMethod is required for DELIVERY.");
+                if (!Enum.TryParse<PaymentMethod>(req.PaymentMethod, true, out var deliveryMethod))
+                    throw new ArgumentException("Invalid paymentMethod. Use CASH or CARD.");
+                if (deliveryMethod == PaymentMethod.CASH && !restaurant.EnableDeliveryCash)
+                    throw new ArgumentException("Cash is disabled for delivery.");
+                if (deliveryMethod == PaymentMethod.CARD && !restaurant.EnableDeliveryCard)
+                    throw new ArgumentException("Card is disabled for delivery.");
             }
 
             var productIds = req.Items.Select(i => i.ProductId).Distinct().ToList();
@@ -100,6 +128,12 @@ namespace QrCafe.Application.Orders.Commands.CreateOrder
                 TableId = table?.Id,
                 CustomerName = string.IsNullOrWhiteSpace(req.CustomerName) ? null : req.CustomerName.Trim(),
                 Notes = string.IsNullOrWhiteSpace(req.Notes) ? null : req.Notes.Trim(),
+                DeliveryAddress = string.IsNullOrWhiteSpace(req.DeliveryAddress) ? null : req.DeliveryAddress.Trim(),
+                DeliveryReference = string.IsNullOrWhiteSpace(req.DeliveryReference) ? null : req.DeliveryReference.Trim(),
+                DeliveryPhone = string.IsNullOrWhiteSpace(req.DeliveryPhone) ? null : req.DeliveryPhone.Trim(),
+                PaymentMethod = string.IsNullOrWhiteSpace(req.PaymentMethod)
+                    ? null
+                    : Enum.TryParse<PaymentMethod>(req.PaymentMethod, true, out var method) ? method : null,
                 Status = OrderStatus.CREATED,
                 Currency = restaurant.Currency,
                 Subtotal = subtotal,

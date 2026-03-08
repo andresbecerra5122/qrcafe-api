@@ -19,6 +19,9 @@ namespace QrCafe.Domain.Entities
 
         public string? CustomerName { get; set; }
         public string? Notes { get; set; }
+        public string? DeliveryAddress { get; set; }
+        public string? DeliveryReference { get; set; }
+        public string? DeliveryPhone { get; set; }
 
         public OrderStatus Status { get; set; }
 

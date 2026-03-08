@@ -24,6 +24,10 @@ namespace QrCafe.Api.Controllers.Public
                 req.TableToken,
                 req.CustomerName,
                 req.Notes,
+                req.DeliveryAddress,
+                req.DeliveryReference,
+                req.DeliveryPhone,
+                req.PaymentMethod,
                 req.Items.Select(i => new CreateOrderItemInput(i.ProductId, i.Qty, i.Notes)).ToList()
             );
 

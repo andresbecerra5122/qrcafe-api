@@ -10,5 +10,6 @@ namespace QrCafe.Api.Auth
         public const string PolicyAdminOnly = "AdminOnly";
         public const string PolicyKitchenOrAdmin = "KitchenOrAdmin";
         public const string PolicyWaiterOrAdmin = "WaiterOrAdmin";
+        public const string PolicyDeliveryOrAdmin = "DeliveryOrAdmin";
     }
 }

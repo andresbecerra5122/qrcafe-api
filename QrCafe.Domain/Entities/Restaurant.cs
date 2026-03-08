@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,6 +23,10 @@ namespace QrCafe.Domain.Entities
         public decimal TaxRate { get; set; }
 
         public bool IsActive { get; set; }
+        public bool EnableDineIn { get; set; } = true;
+        public bool EnableDelivery { get; set; } = false;
+        public bool EnableDeliveryCash { get; set; } = true;
+        public bool EnableDeliveryCard { get; set; } = true;
 
         public DateTimeOffset CreatedAt { get; set; }
         public DateTimeOffset UpdatedAt { get; set; }

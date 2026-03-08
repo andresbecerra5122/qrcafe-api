@@ -35,7 +35,17 @@ namespace QrCafe.Application.Menu.Queries.GetMenu
                 .AsNoTracking()
                 .SingleAsync(r => r.Id == request.RestaurantId && r.IsActive, ct);
 
-            return new GetMenuResult(request.RestaurantId, restaurant.Name, restaurant.Currency, categories, products);
+            return new GetMenuResult(
+                request.RestaurantId,
+                restaurant.Name,
+                restaurant.Currency,
+                restaurant.EnableDineIn,
+                restaurant.EnableDelivery,
+                restaurant.EnableDeliveryCash,
+                restaurant.EnableDeliveryCard,
+                categories,
+                products
+            );
         }
     }
 }

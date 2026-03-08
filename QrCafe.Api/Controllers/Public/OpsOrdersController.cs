@@ -30,6 +30,7 @@ namespace QrCafe.Api.Controllers.Public
         public async Task<ActionResult<IReadOnlyList<OpsOrderListItemDto>>> Get(
             [FromQuery] Guid restaurantId,
             [FromQuery] string? status,
+            [FromQuery] string? orderType,
             CancellationToken ct)
         {
             if (User.GetRestaurantId() != restaurantId)
@@ -37,7 +38,7 @@ namespace QrCafe.Api.Controllers.Public
                 return Forbid();
             }
 
-            var result = await _mediator.Send(new GetOpsOrdersQuery(restaurantId, status), ct);
+            var result = await _mediator.Send(new GetOpsOrdersQuery(restaurantId, status, orderType), ct);
             var dto = result.Items.Select(OpsOrdersMapper.ToDto).ToList();
             return Ok(dto);
         }
@@ -50,11 +51,48 @@ namespace QrCafe.Api.Controllers.Public
                 return Forbid();
             }
 
-            string? tableToken = null;
-            string orderType = "TAKEAWAY";
-
-            if (req.TableNumber.HasValue)
+            var restaurant = await _db.Restaurants.AsNoTracking()
+                .SingleOrDefaultAsync(r => r.Id == req.RestaurantId && r.IsActive, ct);
+            if (restaurant is null)
             {
+                return NotFound("Restaurante no encontrado.");
+            }
+
+            var requestedType = req.OrderType?.Trim();
+            if (string.IsNullOrWhiteSpace(requestedType))
+            {
+                if (req.TableNumber.HasValue)
+                {
+                    requestedType = "DINE_IN";
+                }
+                else if (restaurant.EnableDelivery)
+                {
+                    requestedType = "DELIVERY";
+                }
+                else
+                {
+                    requestedType = "TAKEAWAY";
+                }
+            }
+
+            if (!Enum.TryParse<QrCafe.Domain.Entities.Enums.OrderType>(requestedType, true, out var parsedOrderType))
+            {
+                return BadRequest("Tipo de orden inválido.");
+            }
+
+            string? tableToken = null;
+            if (parsedOrderType == QrCafe.Domain.Entities.Enums.OrderType.DINE_IN)
+            {
+                if (!restaurant.EnableDineIn)
+                {
+                    return BadRequest("DINE_IN está deshabilitado para este restaurante.");
+                }
+
+                if (!req.TableNumber.HasValue)
+                {
+                    return BadRequest("tableNumber es requerido para DINE_IN.");
+                }
+
                 var table = await _db.Tables.AsNoTracking()
                     .SingleOrDefaultAsync(t => t.RestaurantId == req.RestaurantId
                         && t.Number == req.TableNumber.Value && t.IsActive, ct);
@@ -62,15 +100,23 @@ namespace QrCafe.Api.Controllers.Public
                 if (table is null) return BadRequest("Mesa no encontrada.");
 
                 tableToken = table.Token;
-                orderType = "DINE_IN";
+            }
+
+            if (parsedOrderType == QrCafe.Domain.Entities.Enums.OrderType.DELIVERY && !restaurant.EnableDelivery)
+            {
+                return BadRequest("DELIVERY está deshabilitado para este restaurante.");
             }
 
             var input = new CreateOrderInput(
                 req.RestaurantId,
-                orderType,
+                parsedOrderType.ToString(),
                 tableToken,
                 req.CustomerName,
                 req.Notes,
+                req.DeliveryAddress,
+                req.DeliveryReference,
+                req.DeliveryPhone,
+                null,
                 req.Items.Select(i => new CreateOrderItemInput(i.ProductId, i.Qty, i.Notes)).ToList()
             );
 

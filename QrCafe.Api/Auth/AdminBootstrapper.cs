@@ -22,6 +22,7 @@ namespace QrCafe.Api.Auth
             var db = scope.ServiceProvider.GetRequiredService<QrCafeDbContext>();
 
             await EnsureStaffTableAsync(db, ct);
+            await EnsureDeliverySchemaAsync(db, ct);
             await SeedInitialAdminAsync(db, ct);
         }
 
@@ -43,6 +44,24 @@ namespace QrCafe.Api.Auth
 
                 CREATE UNIQUE INDEX IF NOT EXISTS ux_staff_users_restaurant_email
                     ON public.staff_users (restaurant_id, email);
+                """;
+
+            await db.Database.ExecuteSqlRawAsync(sql, ct);
+        }
+
+        private static async Task EnsureDeliverySchemaAsync(QrCafeDbContext db, CancellationToken ct)
+        {
+            const string sql = """
+                ALTER TABLE IF EXISTS public.restaurants
+                    ADD COLUMN IF NOT EXISTS enable_dine_in boolean NOT NULL DEFAULT true,
+                    ADD COLUMN IF NOT EXISTS enable_delivery boolean NOT NULL DEFAULT false,
+                    ADD COLUMN IF NOT EXISTS enable_delivery_cash boolean NOT NULL DEFAULT true,
+                    ADD COLUMN IF NOT EXISTS enable_delivery_card boolean NOT NULL DEFAULT true;
+
+                ALTER TABLE IF EXISTS public.orders
+                    ADD COLUMN IF NOT EXISTS delivery_address text NULL,
+                    ADD COLUMN IF NOT EXISTS delivery_reference text NULL,
+                    ADD COLUMN IF NOT EXISTS delivery_phone varchar(50) NULL;
                 """;
 
             await db.Database.ExecuteSqlRawAsync(sql, ct);

@@ -23,6 +23,10 @@ namespace QrCafe.Application.Menu.Queries.GetMenu
         Guid RestaurantId,
         string RestaurantName,
         string Currency,
+        bool EnableDineIn,
+        bool EnableDelivery,
+        bool EnableDeliveryCash,
+        bool EnableDeliveryCard,
         IReadOnlyList<GetMenuCategoryItem> Categories,
         IReadOnlyList<GetMenuProductItem> Products
     );

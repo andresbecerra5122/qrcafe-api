@@ -131,6 +131,15 @@ builder.Services.AddAuthorization(options =>
             StaffRole.Waiter.ToString()
         );
     });
+
+    options.AddPolicy(AuthConstants.PolicyDeliveryOrAdmin, policy =>
+    {
+        policy.RequireRole(
+            StaffRole.Admin.ToString(),
+            StaffRole.Manager.ToString(),
+            StaffRole.Delivery.ToString()
+        );
+    });
 });
 
 var allowedOrigins = builder.Configuration.GetValue<string>("ALLOWED_ORIGINS")

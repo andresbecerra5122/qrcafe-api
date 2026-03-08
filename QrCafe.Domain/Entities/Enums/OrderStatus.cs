@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,6 +13,7 @@ namespace QrCafe.Domain.Entities.Enums
         PAID,
         IN_PROGRESS,
         READY,
+        OUT_FOR_DELIVERY,
         DELIVERED,
         CANCELLED
     }

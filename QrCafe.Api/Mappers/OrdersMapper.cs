@@ -11,7 +11,7 @@ namespace QrCafe.Api.Mappers
         );
 
         public static OrderPublicDto ToDto(GetOrderByIdResult r) => new(
-            r.OrderId, r.OrderType, r.TableNumber, r.CustomerName, r.Status, r.PaymentStatus, r.PaymentMethod, r.Currency,
+            r.OrderId, r.OrderType, r.TableNumber, r.CustomerName, r.DeliveryAddress, r.DeliveryReference, r.DeliveryPhone, r.Status, r.PaymentStatus, r.PaymentMethod, r.Currency,
             r.Subtotal, r.Tax, r.Total, r.CreatedAt, r.OrderNumber, r.RestaurantName,
             r.Items.Select(i => new Dto.Orders.OrderItemPublicDto(i.ProductName, i.Qty, i.UnitPrice, i.LineTotal)).ToList()
         );
