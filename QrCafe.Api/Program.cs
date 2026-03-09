@@ -109,14 +109,21 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy(AuthConstants.PolicyAdminOnly, policy =>
     {
         policy.RequireRole(
+            StaffRole.SuperAdmin.ToString(),
             StaffRole.Admin.ToString(),
             StaffRole.Manager.ToString()
         );
     });
 
+    options.AddPolicy(AuthConstants.PolicySuperAdminOnly, policy =>
+    {
+        policy.RequireRole(StaffRole.SuperAdmin.ToString());
+    });
+
     options.AddPolicy(AuthConstants.PolicyKitchenOrAdmin, policy =>
     {
         policy.RequireRole(
+            StaffRole.SuperAdmin.ToString(),
             StaffRole.Admin.ToString(),
             StaffRole.Manager.ToString(),
             StaffRole.Kitchen.ToString()
@@ -126,6 +133,7 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy(AuthConstants.PolicyWaiterOrAdmin, policy =>
     {
         policy.RequireRole(
+            StaffRole.SuperAdmin.ToString(),
             StaffRole.Admin.ToString(),
             StaffRole.Manager.ToString(),
             StaffRole.Waiter.ToString()
@@ -135,6 +143,7 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy(AuthConstants.PolicyDeliveryOrAdmin, policy =>
     {
         policy.RequireRole(
+            StaffRole.SuperAdmin.ToString(),
             StaffRole.Admin.ToString(),
             StaffRole.Manager.ToString(),
             StaffRole.Delivery.ToString()

@@ -15,5 +15,11 @@ namespace QrCafe.Api.Auth
             var role = user.FindFirstValue(AuthConstants.RoleClaim) ?? user.FindFirstValue(ClaimTypes.Role);
             return role ?? string.Empty;
         }
+
+        public static string GetEmail(this ClaimsPrincipal user)
+        {
+            var email = user.FindFirstValue(AuthConstants.EmailClaim) ?? user.FindFirstValue(ClaimTypes.Email);
+            return email ?? string.Empty;
+        }
     }
 }

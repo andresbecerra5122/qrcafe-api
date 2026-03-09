@@ -24,6 +24,7 @@ namespace QrCafe.Api.Auth
             await EnsureStaffTableAsync(db, ct);
             await EnsureDeliverySchemaAsync(db, ct);
             await SeedInitialAdminAsync(db, ct);
+            await EnsureSeedSuperAdminAsync(db, ct);
         }
 
         private static async Task EnsureStaffTableAsync(QrCafeDbContext db, CancellationToken ct)
@@ -62,6 +63,11 @@ namespace QrCafe.Api.Auth
                     ADD COLUMN IF NOT EXISTS delivery_address text NULL,
                     ADD COLUMN IF NOT EXISTS delivery_reference text NULL,
                     ADD COLUMN IF NOT EXISTS delivery_phone varchar(50) NULL;
+
+                CREATE TABLE IF NOT EXISTS public.restaurant_order_counters (
+                    restaurant_id uuid PRIMARY KEY REFERENCES public.restaurants(id),
+                    last_number bigint NOT NULL DEFAULT 0
+                );
                 """;
 
             await db.Database.ExecuteSqlRawAsync(sql, ct);
@@ -126,6 +132,56 @@ namespace QrCafe.Api.Auth
                 UpdatedAt = now
             });
 
+            await db.SaveChangesAsync(ct);
+        }
+
+        private async Task EnsureSeedSuperAdminAsync(QrCafeDbContext db, CancellationToken ct)
+        {
+            var defaultRestaurantId = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
+            var restaurantIdRaw = _configuration["SEED_SUPERADMIN_RESTAURANT_ID"] ?? defaultRestaurantId;
+            var emailRaw = _configuration["SEED_SUPERADMIN_EMAIL"] ?? "superadmin@qrcafe.local";
+            var password = _configuration["SEED_SUPERADMIN_PASSWORD"] ?? "Admin123!";
+            var fullName = _configuration["SEED_SUPERADMIN_FULL_NAME"] ?? "Super Admin";
+
+            if (!Guid.TryParse(restaurantIdRaw, out var restaurantId))
+            {
+                return;
+            }
+
+            var email = emailRaw.Trim().ToLowerInvariant();
+            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+            {
+                return;
+            }
+
+            var restaurantExists = await db.Restaurants.AsNoTracking().AnyAsync(r => r.Id == restaurantId, ct);
+            if (!restaurantExists)
+            {
+                return;
+            }
+
+            var exists = await db.StaffUsers.AsNoTracking().AnyAsync(
+                u => u.RestaurantId == restaurantId && u.Email == email,
+                ct
+            );
+            if (exists)
+            {
+                return;
+            }
+
+            var now = DateTimeOffset.UtcNow;
+            db.StaffUsers.Add(new StaffUser
+            {
+                Id = Guid.NewGuid(),
+                RestaurantId = restaurantId,
+                FullName = fullName.Trim(),
+                Email = email,
+                PasswordHash = _passwordHasher.Hash(password),
+                Role = StaffRole.SuperAdmin,
+                IsActive = true,
+                CreatedAt = now,
+                UpdatedAt = now
+            });
             await db.SaveChangesAsync(ct);
         }
     }

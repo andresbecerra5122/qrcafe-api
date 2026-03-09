@@ -27,9 +27,11 @@ namespace QrCafe.Api.Controllers.Ops
         public async Task<ActionResult<IReadOnlyList<StaffUserDto>>> Get(CancellationToken ct)
         {
             var restaurantId = User.GetRestaurantId();
+            var isSuperAdmin = User.IsInRole(StaffRole.SuperAdmin.ToString());
             var users = await _db.StaffUsers
                 .AsNoTracking()
                 .Where(u => u.RestaurantId == restaurantId)
+                .Where(u => isSuperAdmin || u.Role != StaffRole.SuperAdmin)
                 .OrderBy(u => u.FullName)
                 .Select(u => new StaffUserDto
                 {
@@ -65,6 +67,10 @@ namespace QrCafe.Api.Controllers.Ops
             if (!Enum.TryParse<StaffRole>(req.Role, true, out var role))
             {
                 return BadRequest(new { error = "Invalid role." });
+            }
+            if (role == StaffRole.SuperAdmin && !User.IsInRole(StaffRole.SuperAdmin.ToString()))
+            {
+                return Forbid();
             }
 
             var exists = await _db.StaffUsers.AnyAsync(
@@ -121,6 +127,12 @@ namespace QrCafe.Api.Controllers.Ops
                 return NotFound(new { error = "Staff account not found." });
             }
 
+            // Protect platform account from restaurant-level user management actions.
+            if (entity.Role == StaffRole.SuperAdmin)
+            {
+                return BadRequest(new { error = "SuperAdmin account cannot be managed from this endpoint." });
+            }
+
             if (!string.IsNullOrWhiteSpace(req.FullName))
             {
                 entity.FullName = req.FullName.Trim();
@@ -136,6 +148,10 @@ namespace QrCafe.Api.Controllers.Ops
                 if (!Enum.TryParse<StaffRole>(req.Role, true, out var parsedRole))
                 {
                     return BadRequest(new { error = "Invalid role." });
+                }
+                if (parsedRole == StaffRole.SuperAdmin && !User.IsInRole(StaffRole.SuperAdmin.ToString()))
+                {
+                    return Forbid();
                 }
 
                 entity.Role = parsedRole;
