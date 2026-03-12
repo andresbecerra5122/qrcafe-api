@@ -1,9 +1,11 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using QrCafe.Api.Auth;
 using QrCafe.Api.Dto.Ops;
 using QrCafe.Application.Ops.Commands.CreateRestaurantOnboarding;
+using QrCafe.Infrastructure.Data;
 
 namespace QrCafe.Api.Controllers.Ops
 {
@@ -13,10 +15,12 @@ namespace QrCafe.Api.Controllers.Ops
     public class OpsPlatformOnboardingController : ControllerBase
     {
         private readonly IMediator _mediator;
+        private readonly QrCafeDbContext _db;
 
-        public OpsPlatformOnboardingController(IMediator mediator)
+        public OpsPlatformOnboardingController(IMediator mediator, QrCafeDbContext db)
         {
             _mediator = mediator;
+            _db = db;
         }
 
         [HttpPost("restaurants")]
@@ -74,6 +78,43 @@ namespace QrCafe.Api.Controllers.Ops
                 ProductsCreated = result.ProductsCreated,
                 StaffUsersCreated = result.StaffUsersCreated
             });
+        }
+
+        [HttpGet("restaurants")]
+        public async Task<ActionResult<IReadOnlyList<PlatformRestaurantListItemDto>>> GetRestaurants(CancellationToken ct)
+        {
+            var restaurants = await _db.Restaurants
+                .AsNoTracking()
+                .OrderByDescending(r => r.CreatedAt)
+                .Select(r => new PlatformRestaurantListItemDto
+                {
+                    RestaurantId = r.Id,
+                    Name = r.Name,
+                    Slug = r.Slug,
+                    IsActive = r.IsActive,
+                    CreatedAt = r.CreatedAt
+                })
+                .ToListAsync(ct);
+
+            return Ok(restaurants);
+        }
+
+        [HttpPatch("restaurants/{restaurantId:guid}/status")]
+        public async Task<IActionResult> UpdateRestaurantStatus(
+            Guid restaurantId,
+            [FromBody] UpdateRestaurantActiveStatusRequestDto req,
+            CancellationToken ct)
+        {
+            var restaurant = await _db.Restaurants.SingleOrDefaultAsync(r => r.Id == restaurantId, ct);
+            if (restaurant is null)
+            {
+                return NotFound(new { error = "Restaurant not found." });
+            }
+
+            restaurant.IsActive = req.IsActive;
+            restaurant.UpdatedAt = DateTimeOffset.UtcNow;
+            await _db.SaveChangesAsync(ct);
+            return NoContent();
         }
     }
 }

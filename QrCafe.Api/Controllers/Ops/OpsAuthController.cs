@@ -50,6 +50,13 @@ namespace QrCafe.Api.Controllers.Ops
                 return Unauthorized(new { error = "Invalid credentials." });
             }
 
+            var restaurantIsActive = await _db.Restaurants.AsNoTracking()
+                .AnyAsync(r => r.Id == staff.RestaurantId && r.IsActive, ct);
+            if (!restaurantIsActive)
+            {
+                return Unauthorized(new { error = "Restaurant is inactive. Contact support." });
+            }
+
             staff.LastLoginAt = DateTimeOffset.UtcNow;
             staff.UpdatedAt = DateTimeOffset.UtcNow;
             await _db.SaveChangesAsync(ct);
@@ -86,6 +93,13 @@ namespace QrCafe.Api.Controllers.Ops
             if (staff is null)
             {
                 return Unauthorized(new { error = "User not found." });
+            }
+
+            var restaurantIsActive = await _db.Restaurants.AsNoTracking()
+                .AnyAsync(r => r.Id == staff.RestaurantId && r.IsActive, ct);
+            if (!restaurantIsActive)
+            {
+                return Unauthorized(new { error = "Restaurant is inactive. Contact support." });
             }
 
             return Ok(new AuthUserDto

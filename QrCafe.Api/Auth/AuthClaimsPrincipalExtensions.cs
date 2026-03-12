@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace QrCafe.Api.Auth
 {
@@ -20,6 +21,14 @@ namespace QrCafe.Api.Auth
         {
             var email = user.FindFirstValue(AuthConstants.EmailClaim) ?? user.FindFirstValue(ClaimTypes.Email);
             return email ?? string.Empty;
+        }
+
+        public static Guid GetUserId(this ClaimsPrincipal user)
+        {
+            var claimValue =
+                user.FindFirstValue(JwtRegisteredClaimNames.Sub)
+                ?? user.FindFirstValue(ClaimTypes.NameIdentifier);
+            return Guid.TryParse(claimValue, out var userId) ? userId : Guid.Empty;
         }
     }
 }

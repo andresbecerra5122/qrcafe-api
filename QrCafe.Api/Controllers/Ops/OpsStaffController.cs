@@ -50,6 +50,48 @@ namespace QrCafe.Api.Controllers.Ops
             return Ok(users);
         }
 
+        [HttpPatch("me/password")]
+        [Authorize(Policy = AuthConstants.PolicyStaffAny)]
+        public async Task<IActionResult> ChangeMyPassword([FromBody] ChangeMyPasswordRequestDto req, CancellationToken ct)
+        {
+            var userId = User.GetUserId();
+            var restaurantId = User.GetRestaurantId();
+            if (userId == Guid.Empty || restaurantId == Guid.Empty)
+            {
+                return Unauthorized(new { error = "Invalid user context." });
+            }
+
+            if (string.IsNullOrWhiteSpace(req.CurrentPassword) || string.IsNullOrWhiteSpace(req.NewPassword))
+            {
+                return BadRequest(new { error = "currentPassword and newPassword are required." });
+            }
+
+            if (req.NewPassword.Length < 8)
+            {
+                return BadRequest(new { error = "New password must be at least 8 characters." });
+            }
+
+            var entity = await _db.StaffUsers.SingleOrDefaultAsync(
+                u => u.Id == userId && u.RestaurantId == restaurantId && u.IsActive,
+                ct
+            );
+            if (entity is null)
+            {
+                return Unauthorized(new { error = "User not found." });
+            }
+
+            if (!_passwordHasher.Verify(req.CurrentPassword, entity.PasswordHash))
+            {
+                return BadRequest(new { error = "Current password is incorrect." });
+            }
+
+            entity.PasswordHash = _passwordHasher.Hash(req.NewPassword);
+            entity.UpdatedAt = DateTimeOffset.UtcNow;
+            await _db.SaveChangesAsync(ct);
+
+            return NoContent();
+        }
+
         [HttpPost]
         public async Task<ActionResult<StaffUserDto>> Create([FromBody] CreateStaffUserRequestDto req, CancellationToken ct)
         {
