@@ -76,7 +76,9 @@ namespace QrCafe.Application.Ops.Queries.GetOpsOrders
                 .ToDictionaryAsync(
                     g => g.Key,
                     g => (IReadOnlyList<OpsOrderItemDetail>)g
-                        .Select(i => new OpsOrderItemDetail(i.ProductNameSnap, i.Qty, i.Notes))
+                        .OrderBy(i => i.IsDone)
+                        .ThenBy(i => i.CreatedAt)
+                        .Select(i => new OpsOrderItemDetail(i.ProductNameSnap, i.Qty, i.Notes, i.IsDone))
                         .ToList(),
                     ct);
 

@@ -25,6 +25,7 @@ namespace QrCafe.Api.Dto.Orders
         string ProductName,
         int Qty,
         decimal UnitPrice,
-        decimal LineTotal
+        decimal LineTotal,
+        bool IsDone
     );
 }

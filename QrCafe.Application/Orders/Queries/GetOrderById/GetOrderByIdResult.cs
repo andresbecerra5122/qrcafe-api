@@ -25,6 +25,7 @@ namespace QrCafe.Application.Orders.Queries.GetOrderById
         string ProductName,
         int Qty,
         decimal UnitPrice,
-        decimal LineTotal
+        decimal LineTotal,
+        bool IsDone
     );
 }

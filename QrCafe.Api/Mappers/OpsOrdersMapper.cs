@@ -8,7 +8,7 @@ namespace QrCafe.Api.Mappers
         public static OpsOrderListItemDto ToDto(GetOpsOrdersItem r) => new(
             r.OrderId, r.OrderType, r.TableNumber, r.CustomerName, r.DeliveryAddress, r.DeliveryReference, r.DeliveryPhone, r.Status,
             r.PaymentMethod, r.PaymentRequestedAt, r.Currency, r.Total, r.CreatedAt,
-            r.Items.Select(i => new OpsOrderItemDto(i.ProductName, i.Qty, i.Notes)).ToList()
+            r.Items.Select(i => new OpsOrderItemDto(i.ProductName, i.Qty, i.Notes, i.IsDone)).ToList()
         );
     }
 }

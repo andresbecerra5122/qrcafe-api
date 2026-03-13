@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QrCafe.Domain.Entities.Enums;
 using QrCafe.Infrastructure.Data;
@@ -17,6 +17,18 @@ namespace QrCafe.Application.Ops.Commands.UpdateOrderStatus
 
             var order = await _db.Orders.SingleOrDefaultAsync(o => o.Id == request.OrderId, ct);
             if (order is null) throw new KeyNotFoundException("Order not found.");
+
+            if (newStatus == OrderStatus.READY)
+            {
+                var pendingItems = await _db.OrderItems
+                    .Where(i => i.OrderId == order.Id && !i.IsDone)
+                    .ToListAsync(ct);
+
+                foreach (var item in pendingItems)
+                {
+                    item.IsDone = true;
+                }
+            }
 
             order.Status = newStatus;
             order.UpdatedAt = DateTimeOffset.UtcNow;

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -21,6 +21,8 @@ namespace QrCafe.Domain.Entities
         public int Qty { get; set; }
 
         public string? Notes { get; set; }
+
+        public bool IsDone { get; set; }
 
         public decimal LineTotal { get; set; }
 

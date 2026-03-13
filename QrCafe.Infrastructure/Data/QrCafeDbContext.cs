@@ -126,6 +126,7 @@ namespace QrCafe.Infrastructure.Data
                 e.Property(x => x.UnitPriceSnap).HasColumnName("unit_price_snap");
                 e.Property(x => x.Qty).HasColumnName("qty");
                 e.Property(x => x.Notes).HasColumnName("notes");
+                e.Property(x => x.IsDone).HasColumnName("is_done");
                 e.Property(x => x.LineTotal).HasColumnName("line_total");
                 e.Property(x => x.CreatedAt).HasColumnName("created_at");
 

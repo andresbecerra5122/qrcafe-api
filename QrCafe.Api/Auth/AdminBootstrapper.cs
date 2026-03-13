@@ -64,6 +64,9 @@ namespace QrCafe.Api.Auth
                     ADD COLUMN IF NOT EXISTS delivery_reference text NULL,
                     ADD COLUMN IF NOT EXISTS delivery_phone varchar(50) NULL;
 
+                ALTER TABLE IF EXISTS public.order_items
+                    ADD COLUMN IF NOT EXISTS is_done boolean NOT NULL DEFAULT false;
+
                 CREATE TABLE IF NOT EXISTS public.restaurant_order_counters (
                     restaurant_id uuid PRIMARY KEY REFERENCES public.restaurants(id),
                     last_number bigint NOT NULL DEFAULT 0

@@ -89,6 +89,7 @@ namespace QrCafe.Application.Orders.Commands.CreateOrder
 
             decimal subtotal = 0;
             var orderItems = new List<OrderItem>();
+            var now = DateTimeOffset.UtcNow;
 
             foreach (var it in req.Items)
             {
@@ -104,13 +105,58 @@ namespace QrCafe.Application.Orders.Commands.CreateOrder
                     UnitPriceSnap = p.Price,
                     Qty = it.Qty,
                     Notes = it.Notes,
+                    IsDone = false,
                     LineTotal = lineTotal,
-                    CreatedAt = DateTimeOffset.UtcNow
+                    CreatedAt = now
                 });
             }
 
             var tax = Math.Round(subtotal * restaurant.TaxRate, 2);
             var total = subtotal + tax;
+
+            Order? existingOpenTableOrder = null;
+            if (orderType == OrderType.DINE_IN && table is not null)
+            {
+                existingOpenTableOrder = await _db.Orders
+                    .Where(o =>
+                        o.RestaurantId == restaurant.Id
+                        && o.OrderType == OrderType.DINE_IN
+                        && o.TableId == table.Id
+                        && o.Status != OrderStatus.PAID
+                        && o.Status != OrderStatus.CANCELLED
+                        && o.Status != OrderStatus.PAYMENT_PENDING)
+                    .OrderByDescending(o => o.CreatedAt)
+                    .FirstOrDefaultAsync(ct);
+            }
+
+            if (existingOpenTableOrder is not null)
+            {
+                foreach (var oi in orderItems) oi.OrderId = existingOpenTableOrder.Id;
+
+                existingOpenTableOrder.Subtotal += subtotal;
+                existingOpenTableOrder.Tax = Math.Round(existingOpenTableOrder.Subtotal * restaurant.TaxRate, 2);
+                existingOpenTableOrder.Total = existingOpenTableOrder.Subtotal + existingOpenTableOrder.Tax;
+                existingOpenTableOrder.UpdatedAt = now;
+
+                if (existingOpenTableOrder.Status is OrderStatus.READY or OrderStatus.DELIVERED)
+                {
+                    existingOpenTableOrder.Status = OrderStatus.IN_PROGRESS;
+                }
+
+                await using var existingTx = await _db.Database.BeginTransactionAsync(ct);
+                _db.OrderItems.AddRange(orderItems);
+                await _db.SaveChangesAsync(ct);
+                await existingTx.CommitAsync(ct);
+
+                return new CreateOrderResult(
+                    existingOpenTableOrder.Id,
+                    existingOpenTableOrder.Status.ToString(),
+                    existingOpenTableOrder.Currency,
+                    existingOpenTableOrder.Subtotal,
+                    existingOpenTableOrder.Tax,
+                    existingOpenTableOrder.Total,
+                    existingOpenTableOrder.OrderNumber);
+            }
 
             var numbers = await _db.Database.SqlQueryRaw<long>(@"
                 UPDATE public.restaurant_order_counters
@@ -139,8 +185,8 @@ namespace QrCafe.Application.Orders.Commands.CreateOrder
                 Subtotal = subtotal,
                 Tax = tax,
                 Total = total,
-                CreatedAt = DateTimeOffset.UtcNow,
-                UpdatedAt = DateTimeOffset.UtcNow,
+                CreatedAt = now,
+                UpdatedAt = now,
                 OrderNumber = nextNumber
             };
 
