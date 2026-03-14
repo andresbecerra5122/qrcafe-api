@@ -1,7 +1,10 @@
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QrCafe.Api.Auth;
+using QrCafe.Api.Dto.Ops;
+using QrCafe.Application.Ops.Commands.SyncActiveTablesCount;
 using QrCafe.Infrastructure.Data;
 
 namespace QrCafe.Api.Controllers.Public
@@ -11,8 +14,13 @@ namespace QrCafe.Api.Controllers.Public
     [Authorize(Policy = AuthConstants.PolicyAdminOnly)]
     public class OpsTablesController : ControllerBase
     {
+        private readonly IMediator _mediator;
         private readonly QrCafeDbContext _db;
-        public OpsTablesController(QrCafeDbContext db) => _db = db;
+        public OpsTablesController(IMediator mediator, QrCafeDbContext db)
+        {
+            _mediator = mediator;
+            _db = db;
+        }
 
         [HttpGet]
         public async Task<ActionResult<IReadOnlyList<OpsTableItem>>> Get(
@@ -31,6 +39,24 @@ namespace QrCafe.Api.Controllers.Public
                 .ToListAsync(ct);
 
             return Ok(tables);
+        }
+
+        [HttpPatch("active-count")]
+        public async Task<ActionResult<UpdateActiveTablesCountResponseDto>> UpdateActiveCount(
+            [FromQuery] Guid restaurantId,
+            [FromBody] UpdateActiveTablesCountRequestDto req,
+            CancellationToken ct)
+        {
+            if (User.GetRestaurantId() != restaurantId)
+            {
+                return Forbid();
+            }
+
+            var activeCount = await _mediator.Send(
+                new SyncActiveTablesCountCommand(restaurantId, req.ActiveCount),
+                ct);
+
+            return Ok(new UpdateActiveTablesCountResponseDto(activeCount));
         }
     }
 

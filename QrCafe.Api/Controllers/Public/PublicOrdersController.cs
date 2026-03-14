@@ -4,6 +4,7 @@ using QrCafe.Api.Dto.Orders;
 using QrCafe.Api.Mappers;
 using QrCafe.Application.Orders.Commands.CreateOrder;
 using QrCafe.Application.Orders.Commands.RequestPayment;
+using QrCafe.Application.Orders.Queries.GetActiveTableOrder;
 using QrCafe.Application.Orders.Queries.GetOrderById;
 
 namespace QrCafe.Api.Controllers.Public
@@ -41,6 +42,18 @@ namespace QrCafe.Api.Controllers.Public
         public async Task<ActionResult<OrderPublicDto>> GetById(Guid orderId, CancellationToken ct)
         {
             var result = await _mediator.Send(new GetOrderByIdQuery(orderId), ct);
+            if (result is null) return NotFound();
+
+            return Ok(OrdersMapper.ToDto(result));
+        }
+
+        [HttpGet("active-by-table")]
+        public async Task<ActionResult<OrderPublicDto>> GetActiveByTable(
+            [FromQuery] Guid restaurantId,
+            [FromQuery] string tableToken,
+            CancellationToken ct)
+        {
+            var result = await _mediator.Send(new GetActiveTableOrderQuery(restaurantId, tableToken), ct);
             if (result is null) return NotFound();
 
             return Ok(OrdersMapper.ToDto(result));
