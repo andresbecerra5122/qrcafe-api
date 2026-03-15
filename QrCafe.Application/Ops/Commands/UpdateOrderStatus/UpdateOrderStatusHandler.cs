@@ -46,6 +46,19 @@ namespace QrCafe.Application.Ops.Commands.UpdateOrderStatus
                 }
             }
 
+            if (newStatus == OrderStatus.PAID)
+            {
+                if (!order.PaidAt.HasValue)
+                {
+                    order.PaidAt = DateTimeOffset.UtcNow;
+                }
+
+                if (!order.PaymentRequestedAt.HasValue)
+                {
+                    order.PaymentRequestedAt = order.PaidAt;
+                }
+            }
+
             order.Status = newStatus;
             order.UpdatedAt = DateTimeOffset.UtcNow;
 
