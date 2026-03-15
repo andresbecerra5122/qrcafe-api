@@ -6,6 +6,8 @@ using QrCafe.Api.Auth;
 using QrCafe.Api.Dto.Ops;
 using QrCafe.Api.Mappers;
 using QrCafe.Application.Ops.Commands.UpdateOrderStatus;
+using QrCafe.Application.Ops.Commands.UpdateOrderItemPrepared;
+using QrCafe.Application.Ops.Commands.UpdateOrderItemDelivered;
 using QrCafe.Application.Ops.Commands.CollectOrder;
 using QrCafe.Application.Ops.Queries.GetOpsOrders;
 using QrCafe.Application.Orders.Commands.CreateOrder;
@@ -140,6 +142,32 @@ namespace QrCafe.Api.Controllers.Public
             return NoContent();
         }
 
+        [HttpPatch("{orderId:guid}/items/{itemId:guid}/prepared")]
+        [Authorize(Policy = AuthConstants.PolicyKitchenOrAdmin)]
+        public async Task<IActionResult> UpdateItemPrepared(Guid orderId, Guid itemId, [FromBody] UpdateOrderItemStateDto req, CancellationToken ct)
+        {
+            var restaurantId = User.GetRestaurantId();
+            var hasAccess = await _db.Orders.AsNoTracking()
+                .AnyAsync(o => o.Id == orderId && o.RestaurantId == restaurantId, ct);
+            if (!hasAccess) return NotFound();
+
+            await _mediator.Send(new UpdateOrderItemPreparedCommand(orderId, itemId, req.Value), ct);
+            return NoContent();
+        }
+
+        [HttpPatch("{orderId:guid}/items/{itemId:guid}/delivered")]
+        [Authorize(Policy = AuthConstants.PolicyWaiterOrAdmin)]
+        public async Task<IActionResult> UpdateItemDelivered(Guid orderId, Guid itemId, [FromBody] UpdateOrderItemStateDto req, CancellationToken ct)
+        {
+            var restaurantId = User.GetRestaurantId();
+            var hasAccess = await _db.Orders.AsNoTracking()
+                .AnyAsync(o => o.Id == orderId && o.RestaurantId == restaurantId, ct);
+            if (!hasAccess) return NotFound();
+
+            await _mediator.Send(new UpdateOrderItemDeliveredCommand(orderId, itemId, req.Value), ct);
+            return NoContent();
+        }
+
         [HttpPatch("{orderId:guid}/collect")]
         [Authorize(Policy = AuthConstants.PolicyWaiterOrAdmin)]
         public async Task<IActionResult> Collect(Guid orderId, [FromBody] CollectOrderDto req, CancellationToken ct)
@@ -158,4 +186,5 @@ namespace QrCafe.Api.Controllers.Public
     }
 
     public record CollectOrderDto(string PaymentMethod);
+    public record UpdateOrderItemStateDto(bool Value);
 }

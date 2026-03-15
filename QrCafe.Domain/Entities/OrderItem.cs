@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using QrCafe.Domain.Entities.Enums;
+
 namespace QrCafe.Domain.Entities
 {
     public class OrderItem
@@ -22,6 +24,9 @@ namespace QrCafe.Domain.Entities
 
         public string? Notes { get; set; }
 
+        public PrepStation PrepStation { get; set; } = PrepStation.KITCHEN;
+        public bool IsPrepared { get; set; }
+        public bool IsDelivered { get; set; }
         public bool IsDone { get; set; }
 
         public decimal LineTotal { get; set; }

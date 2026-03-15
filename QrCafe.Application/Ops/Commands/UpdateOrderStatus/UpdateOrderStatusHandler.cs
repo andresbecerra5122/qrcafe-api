@@ -20,13 +20,29 @@ namespace QrCafe.Application.Ops.Commands.UpdateOrderStatus
 
             if (newStatus == OrderStatus.READY)
             {
-                var pendingItems = await _db.OrderItems
-                    .Where(i => i.OrderId == order.Id && !i.IsDone)
-                    .ToListAsync(ct);
+                var allPrepared = await _db.OrderItems
+                    .Where(i => i.OrderId == order.Id)
+                    .AllAsync(i => i.IsPrepared, ct);
+                if (!allPrepared)
+                    throw new InvalidOperationException("Order can only be READY when all items are prepared.");
+            }
 
-                foreach (var item in pendingItems)
+            if (newStatus == OrderStatus.DELIVERED)
+            {
+                var items = await _db.OrderItems
+                    .Where(i => i.OrderId == order.Id)
+                    .ToListAsync(ct);
+                var anyDelivered = items.Any(i => i.IsDelivered);
+                if (!anyDelivered)
                 {
-                    item.IsDone = true;
+                    var preparedItems = items.Where(i => i.IsPrepared).ToList();
+                    if (preparedItems.Count == 0)
+                        throw new InvalidOperationException("At least one prepared item must exist before setting DELIVERED.");
+
+                    foreach (var item in preparedItems)
+                    {
+                        item.IsDelivered = true;
+                    }
                 }
             }
 

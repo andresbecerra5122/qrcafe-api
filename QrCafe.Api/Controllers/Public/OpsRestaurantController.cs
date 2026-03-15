@@ -33,7 +33,8 @@ namespace QrCafe.Api.Controllers.Public
                     x.EnableDineIn,
                     x.EnableDelivery,
                     x.EnableDeliveryCash,
-                    x.EnableDeliveryCard
+                    x.EnableDeliveryCard,
+                    x.EnableKitchenBarSplit
                 })
                 .SingleOrDefaultAsync(ct);
 
@@ -73,6 +74,10 @@ namespace QrCafe.Api.Controllers.Public
             {
                 restaurant.EnableDeliveryCard = req.EnableDeliveryCard.Value;
             }
+            if (req.EnableKitchenBarSplit.HasValue)
+            {
+                restaurant.EnableKitchenBarSplit = req.EnableKitchenBarSplit.Value;
+            }
 
             restaurant.UpdatedAt = DateTimeOffset.UtcNow;
             await _db.SaveChangesAsync(ct);
@@ -85,7 +90,8 @@ namespace QrCafe.Api.Controllers.Public
                 restaurant.EnableDineIn,
                 restaurant.EnableDelivery,
                 restaurant.EnableDeliveryCash,
-                restaurant.EnableDeliveryCard
+                restaurant.EnableDeliveryCard,
+                restaurant.EnableKitchenBarSplit
             });
         }
     }

@@ -4,9 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QrCafe.Api.Auth;
 using QrCafe.Api.Dto.Ops;
+using QrCafe.Application.Ops.Commands.BulkCreateProducts;
 using QrCafe.Application.Ops.Commands.ToggleProductAvailability;
 using QrCafe.Application.Ops.Queries.GetOpsProducts;
 using QrCafe.Domain.Entities;
+using QrCafe.Domain.Entities.Enums;
 using QrCafe.Infrastructure.Data;
 
 namespace QrCafe.Api.Controllers.Public
@@ -96,28 +98,63 @@ namespace QrCafe.Api.Controllers.Public
                 Sort = req.Sort,
                 CreatedAt = now,
                 UpdatedAt = now,
-                ImageUrl = req.ImageUrl?.Trim() ?? string.Empty
+                ImageUrl = req.ImageUrl?.Trim() ?? string.Empty,
+                PrepStation = req.PrepStation is null ? null : ParsePrepStation(req.PrepStation)
             };
 
             _db.Products.Add(product);
             await _db.SaveChangesAsync(ct);
 
-            var categoryName = await _db.Categories.AsNoTracking()
+            var categoryData = await _db.Categories.AsNoTracking()
                 .Where(c => c.Id == product.CategoryId)
-                .Select(c => c.Name)
+                .Select(c => new { c.Name, c.PrepStation })
                 .SingleOrDefaultAsync(ct);
 
             return Ok(new OpsProductItem(
                 product.Id,
                 product.Name,
                 product.Description,
-                categoryName,
+                categoryData?.Name,
+                categoryData?.PrepStation.ToString() ?? PrepStation.KITCHEN.ToString(),
+                product.PrepStation?.ToString() ?? categoryData?.PrepStation.ToString() ?? PrepStation.KITCHEN.ToString(),
                 product.Price,
                 product.IsAvailable,
                 product.IsActive,
                 string.IsNullOrWhiteSpace(product.ImageUrl) ? null : product.ImageUrl,
                 product.Sort
             ));
+        }
+
+        [HttpPost("bulk")]
+        [Authorize(Policy = AuthConstants.PolicyAdminOnly)]
+        public async Task<ActionResult<object>> BulkCreate(
+            [FromBody] BulkCreateProductsRequestDto req,
+            CancellationToken ct)
+        {
+            var restaurantId = User.GetRestaurantId();
+            if (req.Products is null || req.Products.Count == 0)
+            {
+                return BadRequest(new { error = "At least one product is required." });
+            }
+
+            var result = await _mediator.Send(
+                new BulkCreateProductsCommand(
+                    restaurantId,
+                    req.Products.Select(p => new BulkCreateProductInput(
+                        p.Name,
+                        p.Description,
+                        p.CategoryName,
+                        p.PrepStation,
+                        p.Price,
+                        p.ImageUrl,
+                        p.Sort,
+                        p.IsAvailable
+                    )).ToList()
+                ),
+                ct
+            );
+
+            return Ok(new { createdCount = result.CreatedCount });
         }
 
         [HttpPatch("{productId:guid}")]
@@ -188,25 +225,70 @@ namespace QrCafe.Api.Controllers.Public
                 product.CategoryId = await ResolveCategoryIdAsync(restaurantId, req.CategoryName, ct);
             }
 
+            if (req.PrepStation is not null)
+            {
+                product.PrepStation = ParsePrepStation(req.PrepStation);
+            }
+
             product.UpdatedAt = DateTimeOffset.UtcNow;
             await _db.SaveChangesAsync(ct);
 
-            var categoryName = await _db.Categories.AsNoTracking()
+            var categoryData = await _db.Categories.AsNoTracking()
                 .Where(c => c.Id == product.CategoryId)
-                .Select(c => c.Name)
+                .Select(c => new { c.Name, c.PrepStation })
                 .SingleOrDefaultAsync(ct);
 
             return Ok(new OpsProductItem(
                 product.Id,
                 product.Name,
                 product.Description,
-                categoryName,
+                categoryData?.Name,
+                categoryData?.PrepStation.ToString() ?? PrepStation.KITCHEN.ToString(),
+                product.PrepStation?.ToString() ?? categoryData?.PrepStation.ToString() ?? PrepStation.KITCHEN.ToString(),
                 product.Price,
                 product.IsAvailable,
                 product.IsActive,
                 string.IsNullOrWhiteSpace(product.ImageUrl) ? null : product.ImageUrl,
                 product.Sort
             ));
+        }
+
+        [HttpPatch("category-station")]
+        [Authorize(Policy = AuthConstants.PolicyAdminOnly)]
+        public async Task<IActionResult> UpdateCategoryStation(
+            [FromBody] UpdateCategoryStationRequestDto req,
+            CancellationToken ct)
+        {
+            var restaurantId = User.GetRestaurantId();
+            var categoryName = req.CategoryName?.Trim();
+            if (string.IsNullOrWhiteSpace(categoryName))
+            {
+                return BadRequest(new { error = "Category name is required." });
+            }
+
+            var category = await _db.Categories.SingleOrDefaultAsync(
+                c => c.RestaurantId == restaurantId && c.Name.ToLower() == categoryName.ToLower(),
+                ct);
+            if (category is null)
+            {
+                return NotFound(new { error = "Category not found." });
+            }
+
+            var station = ParsePrepStation(req.PrepStation);
+            category.PrepStation = station;
+            category.UpdatedAt = DateTimeOffset.UtcNow;
+
+            var products = await _db.Products
+                .Where(p => p.RestaurantId == restaurantId && p.CategoryId == category.Id)
+                .ToListAsync(ct);
+            foreach (var product in products)
+            {
+                product.PrepStation = station;
+                product.UpdatedAt = DateTimeOffset.UtcNow;
+            }
+
+            await _db.SaveChangesAsync(ct);
+            return NoContent();
         }
 
         [HttpDelete("{productId:guid}")]
@@ -238,7 +320,6 @@ namespace QrCafe.Api.Controllers.Public
 
             var normalized = categoryName.Trim();
             var existing = await _db.Categories
-                .AsNoTracking()
                 .Where(c => c.RestaurantId == restaurantId)
                 .FirstOrDefaultAsync(c => c.Name.ToLower() == normalized.ToLower(), ct);
 
@@ -259,6 +340,7 @@ namespace QrCafe.Api.Controllers.Public
                 RestaurantId = restaurantId,
                 Name = normalized,
                 Sort = nextSort + 1,
+                PrepStation = PrepStation.KITCHEN,
                 CreatedAt = now,
                 UpdatedAt = now
             };
@@ -267,7 +349,19 @@ namespace QrCafe.Api.Controllers.Public
             await _db.SaveChangesAsync(ct);
             return created.Id;
         }
+
+        private static PrepStation ParsePrepStation(string? raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw))
+                return PrepStation.KITCHEN;
+
+            if (!Enum.TryParse<PrepStation>(raw, true, out var station))
+                throw new ArgumentException("Invalid prepStation. Use KITCHEN or BAR.");
+
+            return station;
+        }
     }
 
     public record ToggleAvailabilityDto(bool IsAvailable);
+    public record UpdateCategoryStationRequestDto(string CategoryName, string PrepStation);
 }

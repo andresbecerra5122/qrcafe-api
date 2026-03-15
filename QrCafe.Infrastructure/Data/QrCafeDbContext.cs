@@ -42,6 +42,7 @@ namespace QrCafe.Infrastructure.Data
                 e.Property(x => x.EnableDelivery).HasColumnName("enable_delivery");
                 e.Property(x => x.EnableDeliveryCash).HasColumnName("enable_delivery_cash");
                 e.Property(x => x.EnableDeliveryCard).HasColumnName("enable_delivery_card");
+                e.Property(x => x.EnableKitchenBarSplit).HasColumnName("enable_kitchen_bar_split");
                 e.Property(x => x.CreatedAt).HasColumnName("created_at");
                 e.Property(x => x.UpdatedAt).HasColumnName("updated_at");
             });
@@ -67,6 +68,7 @@ namespace QrCafe.Infrastructure.Data
                 e.Property(x => x.RestaurantId).HasColumnName("restaurant_id");
                 e.Property(x => x.Name).HasColumnName("name");
                 e.Property(x => x.Sort).HasColumnName("sort");
+                e.Property(x => x.PrepStation).HasColumnName("prep_station").HasConversion<string>();
                 e.Property(x => x.CreatedAt).HasColumnName("created_at");
                 e.Property(x => x.UpdatedAt).HasColumnName("updated_at");
             });
@@ -87,6 +89,7 @@ namespace QrCafe.Infrastructure.Data
                 e.Property(x => x.CreatedAt).HasColumnName("created_at");
                 e.Property(x => x.UpdatedAt).HasColumnName("updated_at");
                 e.Property(x => x.ImageUrl).HasColumnName("image_url");
+                e.Property(x => x.PrepStation).HasColumnName("prep_station").HasConversion<string>();
             });
 
             modelBuilder.Entity<Order>(e =>
@@ -126,6 +129,9 @@ namespace QrCafe.Infrastructure.Data
                 e.Property(x => x.UnitPriceSnap).HasColumnName("unit_price_snap");
                 e.Property(x => x.Qty).HasColumnName("qty");
                 e.Property(x => x.Notes).HasColumnName("notes");
+                e.Property(x => x.PrepStation).HasColumnName("prep_station").HasConversion<string>();
+                e.Property(x => x.IsPrepared).HasColumnName("is_prepared");
+                e.Property(x => x.IsDelivered).HasColumnName("is_delivered");
                 e.Property(x => x.IsDone).HasColumnName("is_done");
                 e.Property(x => x.LineTotal).HasColumnName("line_total");
                 e.Property(x => x.CreatedAt).HasColumnName("created_at");

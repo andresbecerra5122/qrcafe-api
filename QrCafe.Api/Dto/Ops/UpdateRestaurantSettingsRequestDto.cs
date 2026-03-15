@@ -6,5 +6,6 @@ namespace QrCafe.Api.Dto.Ops
         public bool? EnableDelivery { get; set; }
         public bool? EnableDeliveryCash { get; set; }
         public bool? EnableDeliveryCard { get; set; }
+        public bool? EnableKitchenBarSplit { get; set; }
     }
 }

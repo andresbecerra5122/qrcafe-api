@@ -1,8 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
+using QrCafe.Domain.Entities.Enums;
 
 namespace QrCafe.Domain.Entities
 {
@@ -26,6 +28,7 @@ namespace QrCafe.Domain.Entities
         public DateTimeOffset CreatedAt { get; set; }
         public DateTimeOffset UpdatedAt { get; set; }
 
-        public string ImageUrl { get; set; }  
+        public string ImageUrl { get; set; }
+        public PrepStation? PrepStation { get; set; }
     }
 }

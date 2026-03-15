@@ -22,6 +22,10 @@ namespace QrCafe.Application.Ops.Queries.GetOpsProducts
                         p.Name,
                         p.Description,
                         c != null ? c.Name : null,
+                        c != null ? c.PrepStation.ToString() : QrCafe.Domain.Entities.Enums.PrepStation.KITCHEN.ToString(),
+                        p.PrepStation.HasValue
+                            ? p.PrepStation.Value.ToString()
+                            : (c != null ? c.PrepStation.ToString() : QrCafe.Domain.Entities.Enums.PrepStation.KITCHEN.ToString()),
                         p.Price,
                         p.IsAvailable,
                         p.IsActive,

@@ -11,6 +11,8 @@ namespace QrCafe.Application.Ops.Queries.GetOpsProducts
         string Name,
         string? Description,
         string? CategoryName,
+        string CategoryPrepStation,
+        string PrepStation,
         decimal Price,
         bool IsAvailable,
         bool IsActive,

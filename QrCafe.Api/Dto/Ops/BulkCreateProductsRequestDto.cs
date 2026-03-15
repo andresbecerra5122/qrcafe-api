@@ -1,6 +1,11 @@
 namespace QrCafe.Api.Dto.Ops
 {
-    public class CreateProductRequestDto
+    public class BulkCreateProductsRequestDto
+    {
+        public List<BulkCreateProductItemDto> Products { get; set; } = [];
+    }
+
+    public class BulkCreateProductItemDto
     {
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }

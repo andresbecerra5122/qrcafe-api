@@ -46,13 +46,16 @@ namespace QrCafe.Application.Orders.Queries.GetOrderById
             var items = await _db.OrderItems
                 .AsNoTracking()
                 .Where(i => i.OrderId == request.OrderId)
-                .OrderBy(i => i.IsDone)
+                .OrderBy(i => i.IsPrepared)
                 .ThenBy(i => i.CreatedAt)
                 .Select(i => new OrderItemResult(
                     i.ProductNameSnap,
                     i.Qty,
                     i.UnitPriceSnap,
                     i.LineTotal,
+                    i.PrepStation.ToString(),
+                    i.IsPrepared,
+                    i.IsDelivered,
                     i.IsDone
                 ))
                 .ToListAsync(ct);

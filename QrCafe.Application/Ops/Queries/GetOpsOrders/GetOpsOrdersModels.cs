@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace QrCafe.Application.Ops.Queries.GetOpsOrders
 {
-    public record OpsOrderItemDetail(string ProductName, int Qty, string? Notes, bool IsDone);
+    public record OpsOrderItemDetail(Guid ItemId, string ProductName, int Qty, string? Notes, string PrepStation, bool IsPrepared, bool IsDelivered, bool IsDone);
 
     public record GetOpsOrdersItem(
         Guid OrderId,

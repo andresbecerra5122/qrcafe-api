@@ -57,7 +57,11 @@ namespace QrCafe.Api.Auth
                     ADD COLUMN IF NOT EXISTS enable_dine_in boolean NOT NULL DEFAULT true,
                     ADD COLUMN IF NOT EXISTS enable_delivery boolean NOT NULL DEFAULT false,
                     ADD COLUMN IF NOT EXISTS enable_delivery_cash boolean NOT NULL DEFAULT true,
-                    ADD COLUMN IF NOT EXISTS enable_delivery_card boolean NOT NULL DEFAULT true;
+                    ADD COLUMN IF NOT EXISTS enable_delivery_card boolean NOT NULL DEFAULT true,
+                    ADD COLUMN IF NOT EXISTS enable_kitchen_bar_split boolean NOT NULL DEFAULT false;
+
+                ALTER TABLE IF EXISTS public.categories
+                    ADD COLUMN IF NOT EXISTS prep_station text NOT NULL DEFAULT 'KITCHEN';
 
                 ALTER TABLE IF EXISTS public.orders
                     ADD COLUMN IF NOT EXISTS delivery_address text NULL,
@@ -65,7 +69,10 @@ namespace QrCafe.Api.Auth
                     ADD COLUMN IF NOT EXISTS delivery_phone varchar(50) NULL;
 
                 ALTER TABLE IF EXISTS public.order_items
-                    ADD COLUMN IF NOT EXISTS is_done boolean NOT NULL DEFAULT false;
+                    ADD COLUMN IF NOT EXISTS is_done boolean NOT NULL DEFAULT false,
+                    ADD COLUMN IF NOT EXISTS prep_station text NOT NULL DEFAULT 'KITCHEN',
+                    ADD COLUMN IF NOT EXISTS is_prepared boolean NOT NULL DEFAULT false,
+                    ADD COLUMN IF NOT EXISTS is_delivered boolean NOT NULL DEFAULT false;
 
                 CREATE TABLE IF NOT EXISTS public.restaurant_order_counters (
                     restaurant_id uuid PRIMARY KEY REFERENCES public.restaurants(id),
@@ -74,6 +81,13 @@ namespace QrCafe.Api.Auth
                 """;
 
             await db.Database.ExecuteSqlRawAsync(sql, ct);
+
+            const string backfillSql = """
+                UPDATE public.order_items
+                SET is_prepared = is_done
+                WHERE is_prepared IS DISTINCT FROM is_done;
+                """;
+            await db.Database.ExecuteSqlRawAsync(backfillSql, ct);
         }
 
         private async Task SeedInitialAdminAsync(QrCafeDbContext db, CancellationToken ct)

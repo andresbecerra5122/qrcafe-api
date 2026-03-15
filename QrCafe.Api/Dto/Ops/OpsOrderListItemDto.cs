@@ -1,6 +1,6 @@
 namespace QrCafe.Api.Dto.Ops
 {
-    public record OpsOrderItemDto(string ProductName, int Qty, string? Notes, bool IsDone);
+    public record OpsOrderItemDto(Guid ItemId, string ProductName, int Qty, string? Notes, string PrepStation, bool IsPrepared, bool IsDelivered, bool IsDone);
 
     public record OpsOrderListItemDto(
         Guid OrderId,

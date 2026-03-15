@@ -90,12 +90,28 @@ namespace QrCafe.Application.Orders.Commands.CreateOrder
             decimal subtotal = 0;
             var orderItems = new List<OrderItem>();
             var now = DateTimeOffset.UtcNow;
+            var categoryStations = await _db.Categories.AsNoTracking()
+                .Where(c => c.RestaurantId == restaurant.Id)
+                .ToDictionaryAsync(c => c.Id, c => c.PrepStation, ct);
 
             foreach (var it in req.Items)
             {
                 var p = products.First(x => x.Id == it.ProductId);
                 var lineTotal = p.Price * it.Qty;
                 subtotal += lineTotal;
+                var prepStation = QrCafe.Domain.Entities.Enums.PrepStation.KITCHEN;
+                if (restaurant.EnableKitchenBarSplit)
+                {
+                    if (p.PrepStation.HasValue)
+                    {
+                        prepStation = p.PrepStation.Value;
+                    }
+                    else if (p.CategoryId.HasValue
+                        && categoryStations.TryGetValue(p.CategoryId.Value, out var categoryStation))
+                    {
+                        prepStation = categoryStation;
+                    }
+                }
 
                 orderItems.Add(new OrderItem
                 {
@@ -105,6 +121,9 @@ namespace QrCafe.Application.Orders.Commands.CreateOrder
                     UnitPriceSnap = p.Price,
                     Qty = it.Qty,
                     Notes = it.Notes,
+                    PrepStation = prepStation,
+                    IsPrepared = false,
+                    IsDelivered = false,
                     IsDone = false,
                     LineTotal = lineTotal,
                     CreatedAt = now
