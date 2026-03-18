@@ -48,6 +48,14 @@ namespace QrCafe.Application.Ops.Commands.UpdateOrderStatus
 
             if (newStatus == OrderStatus.PAID)
             {
+                var canMoveToPaid =
+                    order.Status == OrderStatus.DELIVERED
+                    || order.Status == OrderStatus.PAYMENT_PENDING
+                    || (order.OrderType == OrderType.DELIVERY && order.Status == OrderStatus.OUT_FOR_DELIVERY);
+
+                if (!canMoveToPaid)
+                    throw new InvalidOperationException("Order must be DELIVERED, PAYMENT_PENDING or OUT_FOR_DELIVERY (delivery only) to set PAID.");
+
                 if (!order.PaidAt.HasValue)
                 {
                     order.PaidAt = DateTimeOffset.UtcNow;

@@ -109,6 +109,7 @@ namespace QrCafe.Infrastructure.Data
                 e.Property(x => x.Currency).HasColumnName("currency");
                 e.Property(x => x.Subtotal).HasColumnName("subtotal");
                 e.Property(x => x.Tax).HasColumnName("tax");
+                e.Property(x => x.DeliveryFee).HasColumnName("delivery_fee");
                 e.Property(x => x.Total).HasColumnName("total");
                 e.Property(x => x.PaymentMethod).HasColumnName("payment_method").HasConversion<string?>();
                 e.Property(x => x.PaymentRequestedAt).HasColumnName("payment_requested_at");

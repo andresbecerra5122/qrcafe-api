@@ -131,7 +131,8 @@ namespace QrCafe.Application.Orders.Commands.CreateOrder
             }
 
             var tax = Math.Round(subtotal * restaurant.TaxRate, 2);
-            var total = subtotal + tax;
+            const decimal deliveryFee = 0m;
+            var total = subtotal + tax + deliveryFee;
 
             Order? existingOpenTableOrder = null;
             if (orderType == OrderType.DINE_IN && table is not null)
@@ -203,6 +204,7 @@ namespace QrCafe.Application.Orders.Commands.CreateOrder
                 Currency = restaurant.Currency,
                 Subtotal = subtotal,
                 Tax = tax,
+                DeliveryFee = deliveryFee,
                 Total = total,
                 CreatedAt = now,
                 UpdatedAt = now,

@@ -9,6 +9,7 @@ using QrCafe.Application.Ops.Commands.UpdateOrderStatus;
 using QrCafe.Application.Ops.Commands.UpdateOrderItemPrepared;
 using QrCafe.Application.Ops.Commands.UpdateOrderItemDelivered;
 using QrCafe.Application.Ops.Commands.CollectOrder;
+using QrCafe.Application.Ops.Commands.SetDeliveryFee;
 using QrCafe.Application.Ops.Queries.GetOpsOrders;
 using QrCafe.Application.Orders.Commands.CreateOrder;
 using QrCafe.Infrastructure.Data;
@@ -181,6 +182,22 @@ namespace QrCafe.Api.Controllers.Public
             }
 
             await _mediator.Send(new CollectOrderCommand(orderId, req.PaymentMethod), ct);
+            return NoContent();
+        }
+
+        [HttpPatch("{orderId:guid}/delivery-fee")]
+        [Authorize(Policy = AuthConstants.PolicyDeliveryOrAdmin)]
+        public async Task<IActionResult> SetDeliveryFee(Guid orderId, [FromBody] UpdateDeliveryFeeRequestDto req, CancellationToken ct)
+        {
+            var restaurantId = User.GetRestaurantId();
+            var hasAccess = await _db.Orders.AsNoTracking()
+                .AnyAsync(o => o.Id == orderId && o.RestaurantId == restaurantId, ct);
+            if (!hasAccess)
+            {
+                return NotFound();
+            }
+
+            await _mediator.Send(new SetDeliveryFeeCommand(orderId, req.DeliveryFee), ct);
             return NoContent();
         }
     }

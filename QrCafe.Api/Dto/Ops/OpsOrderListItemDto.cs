@@ -14,6 +14,7 @@ namespace QrCafe.Api.Dto.Ops
         string? PaymentMethod,
         DateTimeOffset? PaymentRequestedAt,
         string Currency,
+        decimal DeliveryFee,
         decimal Total,
         DateTimeOffset CreatedAt,
         IReadOnlyList<OpsOrderItemDto> Items

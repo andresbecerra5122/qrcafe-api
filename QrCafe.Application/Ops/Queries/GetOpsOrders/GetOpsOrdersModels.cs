@@ -20,6 +20,7 @@ namespace QrCafe.Application.Ops.Queries.GetOpsOrders
         string? PaymentMethod,
         DateTimeOffset? PaymentRequestedAt,
         string Currency,
+        decimal DeliveryFee,
         decimal Total,
         DateTimeOffset CreatedAt,
         IReadOnlyList<OpsOrderItemDetail> Items

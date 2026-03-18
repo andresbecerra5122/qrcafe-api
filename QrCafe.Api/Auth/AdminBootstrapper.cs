@@ -66,7 +66,8 @@ namespace QrCafe.Api.Auth
                 ALTER TABLE IF EXISTS public.orders
                     ADD COLUMN IF NOT EXISTS delivery_address text NULL,
                     ADD COLUMN IF NOT EXISTS delivery_reference text NULL,
-                    ADD COLUMN IF NOT EXISTS delivery_phone varchar(50) NULL;
+                    ADD COLUMN IF NOT EXISTS delivery_phone varchar(50) NULL,
+                    ADD COLUMN IF NOT EXISTS delivery_fee numeric(12,2) NOT NULL DEFAULT 0;
 
                 ALTER TABLE IF EXISTS public.order_items
                     ADD COLUMN IF NOT EXISTS is_done boolean NOT NULL DEFAULT false,

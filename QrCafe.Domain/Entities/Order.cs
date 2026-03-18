@@ -29,6 +29,7 @@ namespace QrCafe.Domain.Entities
 
         public decimal Subtotal { get; set; }
         public decimal Tax { get; set; }
+        public decimal DeliveryFee { get; set; }
         public decimal Total { get; set; }
 
         public PaymentMethod? PaymentMethod { get; set; }

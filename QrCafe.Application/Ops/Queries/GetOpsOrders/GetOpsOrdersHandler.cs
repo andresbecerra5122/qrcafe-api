@@ -63,6 +63,7 @@ namespace QrCafe.Application.Ops.Queries.GetOpsOrders
                         PaymentMethod = o.PaymentMethod != null ? o.PaymentMethod.ToString() : null,
                         o.PaymentRequestedAt,
                         o.Currency,
+                        o.DeliveryFee,
                         o.Total,
                         o.CreatedAt
                     };
@@ -102,6 +103,7 @@ namespace QrCafe.Application.Ops.Queries.GetOpsOrders
                 o.PaymentMethod,
                 o.PaymentRequestedAt,
                 o.Currency,
+                o.DeliveryFee,
                 o.Total,
                 o.CreatedAt,
                 itemsByOrder.GetValueOrDefault(o.Id, Array.Empty<OpsOrderItemDetail>())
