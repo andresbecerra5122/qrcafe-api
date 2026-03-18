@@ -58,6 +58,7 @@ namespace QrCafe.Api.Auth
                     ADD COLUMN IF NOT EXISTS enable_delivery boolean NOT NULL DEFAULT false,
                     ADD COLUMN IF NOT EXISTS enable_delivery_cash boolean NOT NULL DEFAULT true,
                     ADD COLUMN IF NOT EXISTS enable_delivery_card boolean NOT NULL DEFAULT true,
+                    ADD COLUMN IF NOT EXISTS enable_pay_at_cashier boolean NOT NULL DEFAULT false,
                     ADD COLUMN IF NOT EXISTS enable_kitchen_bar_split boolean NOT NULL DEFAULT false;
 
                 ALTER TABLE IF EXISTS public.categories

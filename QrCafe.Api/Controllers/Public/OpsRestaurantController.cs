@@ -34,6 +34,7 @@ namespace QrCafe.Api.Controllers.Public
                     x.EnableDelivery,
                     x.EnableDeliveryCash,
                     x.EnableDeliveryCard,
+                    x.EnablePayAtCashier,
                     x.EnableKitchenBarSplit
                 })
                 .SingleOrDefaultAsync(ct);
@@ -74,6 +75,10 @@ namespace QrCafe.Api.Controllers.Public
             {
                 restaurant.EnableDeliveryCard = req.EnableDeliveryCard.Value;
             }
+            if (req.EnablePayAtCashier.HasValue)
+            {
+                restaurant.EnablePayAtCashier = req.EnablePayAtCashier.Value;
+            }
             if (req.EnableKitchenBarSplit.HasValue)
             {
                 restaurant.EnableKitchenBarSplit = req.EnableKitchenBarSplit.Value;
@@ -91,6 +96,7 @@ namespace QrCafe.Api.Controllers.Public
                 restaurant.EnableDelivery,
                 restaurant.EnableDeliveryCash,
                 restaurant.EnableDeliveryCard,
+                restaurant.EnablePayAtCashier,
                 restaurant.EnableKitchenBarSplit
             });
         }

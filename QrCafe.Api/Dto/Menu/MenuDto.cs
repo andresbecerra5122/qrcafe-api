@@ -8,6 +8,7 @@ namespace QrCafe.Api.Dto.Menu
         bool EnableDelivery,
         bool EnableDeliveryCash,
         bool EnableDeliveryCard,
+        bool EnablePayAtCashier,
         IReadOnlyList<CategoryDto> Categories,
         IReadOnlyList<ProductDto> Products
     );

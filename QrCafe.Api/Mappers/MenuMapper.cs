@@ -13,6 +13,7 @@ namespace QrCafe.Api.Mappers
             r.EnableDelivery,
             r.EnableDeliveryCash,
             r.EnableDeliveryCard,
+            r.EnablePayAtCashier,
             r.Categories.Select(c => new CategoryDto(c.Id, c.Name, c.Sort)).ToList(),
             r.Products.Select(p => new ProductDto(
                 p.Id, p.CategoryId, p.Name, p.Description, p.Price, p.IsAvailable, p.Sort, p.ImageUrl

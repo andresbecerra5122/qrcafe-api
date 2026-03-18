@@ -27,6 +27,7 @@ namespace QrCafe.Domain.Entities
         public bool EnableDelivery { get; set; } = false;
         public bool EnableDeliveryCash { get; set; } = true;
         public bool EnableDeliveryCard { get; set; } = true;
+        public bool EnablePayAtCashier { get; set; } = false;
         public bool EnableKitchenBarSplit { get; set; } = false;
 
         public DateTimeOffset CreatedAt { get; set; }

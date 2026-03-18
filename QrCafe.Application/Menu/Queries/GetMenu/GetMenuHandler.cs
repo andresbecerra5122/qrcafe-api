@@ -43,6 +43,7 @@ namespace QrCafe.Application.Menu.Queries.GetMenu
                 restaurant.EnableDelivery,
                 restaurant.EnableDeliveryCash,
                 restaurant.EnableDeliveryCard,
+                restaurant.EnablePayAtCashier,
                 categories,
                 products
             );
