@@ -68,7 +68,8 @@ namespace QrCafe.Api.Auth
                     ADD COLUMN IF NOT EXISTS delivery_address text NULL,
                     ADD COLUMN IF NOT EXISTS delivery_reference text NULL,
                     ADD COLUMN IF NOT EXISTS delivery_phone varchar(50) NULL,
-                    ADD COLUMN IF NOT EXISTS delivery_fee numeric(12,2) NOT NULL DEFAULT 0;
+                    ADD COLUMN IF NOT EXISTS delivery_fee numeric(12,2) NOT NULL DEFAULT 0,
+                    ADD COLUMN IF NOT EXISTS payment_method_label text NULL;
 
                 ALTER TABLE IF EXISTS public.order_items
                     ADD COLUMN IF NOT EXISTS is_done boolean NOT NULL DEFAULT false,
@@ -80,6 +81,20 @@ namespace QrCafe.Api.Auth
                     restaurant_id uuid PRIMARY KEY REFERENCES public.restaurants(id),
                     last_number bigint NOT NULL DEFAULT 0
                 );
+
+                CREATE TABLE IF NOT EXISTS public.restaurant_payment_methods (
+                    id uuid PRIMARY KEY,
+                    restaurant_id uuid NOT NULL REFERENCES public.restaurants(id) ON DELETE CASCADE,
+                    code varchar(30) NOT NULL,
+                    label varchar(80) NOT NULL,
+                    is_active boolean NOT NULL DEFAULT true,
+                    sort int NOT NULL DEFAULT 0,
+                    created_at timestamptz NOT NULL DEFAULT now(),
+                    updated_at timestamptz NOT NULL DEFAULT now()
+                );
+
+                CREATE UNIQUE INDEX IF NOT EXISTS ux_restaurant_payment_methods_restaurant_code
+                    ON public.restaurant_payment_methods (restaurant_id, code);
                 """;
 
             await db.Database.ExecuteSqlRawAsync(sql, ct);
@@ -90,6 +105,27 @@ namespace QrCafe.Api.Auth
                 WHERE is_prepared IS DISTINCT FROM is_done;
                 """;
             await db.Database.ExecuteSqlRawAsync(backfillSql, ct);
+
+            const string seedMethodsSql = """
+                INSERT INTO public.restaurant_payment_methods (id, restaurant_id, code, label, is_active, sort, created_at, updated_at)
+                SELECT gen_random_uuid(), r.id, 'CASH', 'Efectivo', true, 1, now(), now()
+                FROM public.restaurants r
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM public.restaurant_payment_methods rpm
+                    WHERE rpm.restaurant_id = r.id AND rpm.code = 'CASH'
+                );
+
+                INSERT INTO public.restaurant_payment_methods (id, restaurant_id, code, label, is_active, sort, created_at, updated_at)
+                SELECT gen_random_uuid(), r.id, 'CARD', 'Tarjeta', true, 2, now(), now()
+                FROM public.restaurants r
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM public.restaurant_payment_methods rpm
+                    WHERE rpm.restaurant_id = r.id AND rpm.code = 'CARD'
+                );
+                """;
+            await db.Database.ExecuteSqlRawAsync(seedMethodsSql, ct);
         }
 
         private async Task SeedInitialAdminAsync(QrCafeDbContext db, CancellationToken ct)

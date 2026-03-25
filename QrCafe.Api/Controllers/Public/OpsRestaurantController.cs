@@ -1,8 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MediatR;
 using QrCafe.Api.Auth;
 using QrCafe.Api.Dto.Ops;
+using QrCafe.Application.Ops.Commands.AddRestaurantPaymentMethod;
+using QrCafe.Application.Ops.Commands.DeleteRestaurantPaymentMethod;
+using QrCafe.Application.Ops.Queries.GetRestaurantPaymentMethods;
 using QrCafe.Infrastructure.Data;
 
 namespace QrCafe.Api.Controllers.Public
@@ -13,7 +17,12 @@ namespace QrCafe.Api.Controllers.Public
     public class OpsRestaurantController : ControllerBase
     {
         private readonly QrCafeDbContext _db;
-        public OpsRestaurantController(QrCafeDbContext db) => _db = db;
+        private readonly IMediator _mediator;
+        public OpsRestaurantController(QrCafeDbContext db, IMediator mediator)
+        {
+            _db = db;
+            _mediator = mediator;
+        }
 
         [HttpGet]
         public async Task<IActionResult> Get([FromQuery] Guid restaurantId, CancellationToken ct)
@@ -40,7 +49,20 @@ namespace QrCafe.Api.Controllers.Public
                 .SingleOrDefaultAsync(ct);
 
             if (r is null) return NotFound();
-            return Ok(r);
+            var methods = await _mediator.Send(new GetRestaurantPaymentMethodsQuery(restaurantId), ct);
+            return Ok(new
+            {
+                r.Id,
+                r.Name,
+                r.Currency,
+                r.EnableDineIn,
+                r.EnableDelivery,
+                r.EnableDeliveryCash,
+                r.EnableDeliveryCard,
+                r.EnablePayAtCashier,
+                r.EnableKitchenBarSplit,
+                PaymentMethods = methods.Select(m => new RestaurantPaymentMethodDto(m.Id, m.Code, m.Label, m.Sort)).ToList()
+            });
         }
 
         [HttpPatch("settings")]
@@ -87,6 +109,7 @@ namespace QrCafe.Api.Controllers.Public
             restaurant.UpdatedAt = DateTimeOffset.UtcNow;
             await _db.SaveChangesAsync(ct);
 
+            var methods = await _mediator.Send(new GetRestaurantPaymentMethodsQuery(restaurantId), ct);
             return Ok(new
             {
                 restaurant.Id,
@@ -97,8 +120,50 @@ namespace QrCafe.Api.Controllers.Public
                 restaurant.EnableDeliveryCash,
                 restaurant.EnableDeliveryCard,
                 restaurant.EnablePayAtCashier,
-                restaurant.EnableKitchenBarSplit
+                restaurant.EnableKitchenBarSplit,
+                PaymentMethods = methods.Select(m => new RestaurantPaymentMethodDto(m.Id, m.Code, m.Label, m.Sort)).ToList()
             });
+        }
+
+        [HttpGet("payment-methods")]
+        public async Task<ActionResult<IReadOnlyList<RestaurantPaymentMethodDto>>> GetPaymentMethods([FromQuery] Guid restaurantId, CancellationToken ct)
+        {
+            if (User.GetRestaurantId() != restaurantId)
+            {
+                return Forbid();
+            }
+
+            var methods = await _mediator.Send(new GetRestaurantPaymentMethodsQuery(restaurantId), ct);
+            return Ok(methods.Select(m => new RestaurantPaymentMethodDto(m.Id, m.Code, m.Label, m.Sort)).ToList());
+        }
+
+        [HttpPost("payment-methods")]
+        [Authorize(Policy = AuthConstants.PolicyAdminOnly)]
+        public async Task<ActionResult<RestaurantPaymentMethodDto>> AddPaymentMethod(
+            [FromQuery] Guid restaurantId,
+            [FromBody] CreateRestaurantPaymentMethodRequestDto req,
+            CancellationToken ct)
+        {
+            if (User.GetRestaurantId() != restaurantId)
+            {
+                return Forbid();
+            }
+
+            var item = await _mediator.Send(new AddRestaurantPaymentMethodCommand(restaurantId, req.Label), ct);
+            return Ok(new RestaurantPaymentMethodDto(item.Id, item.Code, item.Label, item.Sort));
+        }
+
+        [HttpDelete("payment-methods/{methodId:guid}")]
+        [Authorize(Policy = AuthConstants.PolicyAdminOnly)]
+        public async Task<IActionResult> DeletePaymentMethod([FromQuery] Guid restaurantId, Guid methodId, CancellationToken ct)
+        {
+            if (User.GetRestaurantId() != restaurantId)
+            {
+                return Forbid();
+            }
+
+            await _mediator.Send(new DeleteRestaurantPaymentMethodCommand(restaurantId, methodId), ct);
+            return NoContent();
         }
     }
 }

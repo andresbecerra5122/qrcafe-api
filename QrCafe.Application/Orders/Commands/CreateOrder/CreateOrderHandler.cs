@@ -26,6 +26,8 @@ namespace QrCafe.Application.Orders.Commands.CreateOrder
                 ?? throw new KeyNotFoundException("Restaurant not found.");
 
             TableEntity? table = null;
+            string? resolvedPaymentMethodCode = null;
+            string? resolvedPaymentMethodLabel = null;
 
             if (orderType == OrderType.DINE_IN)
             {
@@ -63,12 +65,20 @@ namespace QrCafe.Application.Orders.Commands.CreateOrder
                     throw new ArgumentException("deliveryPhone is required for DELIVERY.");
                 if (string.IsNullOrWhiteSpace(req.PaymentMethod))
                     throw new ArgumentException("paymentMethod is required for DELIVERY.");
-                if (!Enum.TryParse<PaymentMethod>(req.PaymentMethod, true, out var deliveryMethod))
-                    throw new ArgumentException("Invalid paymentMethod. Use CASH or CARD.");
-                if (deliveryMethod == PaymentMethod.CASH && !restaurant.EnableDeliveryCash)
+                var requestedCode = req.PaymentMethod.Trim().ToUpperInvariant();
+                var configuredMethod = await _db.RestaurantPaymentMethods.AsNoTracking()
+                    .Where(m => m.RestaurantId == restaurant.Id && m.IsActive && m.Code == requestedCode)
+                    .Select(m => new { m.Code, m.Label })
+                    .SingleOrDefaultAsync(ct);
+                if (configuredMethod is null)
+                    throw new ArgumentException("Invalid paymentMethod for this restaurant.");
+                if (configuredMethod.Code == "CASH" && !restaurant.EnableDeliveryCash)
                     throw new ArgumentException("Cash is disabled for delivery.");
-                if (deliveryMethod == PaymentMethod.CARD && !restaurant.EnableDeliveryCard)
+                if (configuredMethod.Code == "CARD" && !restaurant.EnableDeliveryCard)
                     throw new ArgumentException("Card is disabled for delivery.");
+
+                resolvedPaymentMethodCode = configuredMethod.Code;
+                resolvedPaymentMethodLabel = configuredMethod.Label;
             }
 
             var productIds = req.Items.Select(i => i.ProductId).Distinct().ToList();
@@ -199,7 +209,8 @@ namespace QrCafe.Application.Orders.Commands.CreateOrder
                 DeliveryPhone = string.IsNullOrWhiteSpace(req.DeliveryPhone) ? null : req.DeliveryPhone.Trim(),
                 PaymentMethod = string.IsNullOrWhiteSpace(req.PaymentMethod)
                     ? null
-                    : Enum.TryParse<PaymentMethod>(req.PaymentMethod, true, out var method) ? method : null,
+                    : Enum.TryParse<PaymentMethod>(resolvedPaymentMethodCode ?? req.PaymentMethod, true, out var method) ? method : null,
+                PaymentMethodLabel = resolvedPaymentMethodLabel,
                 Status = OrderStatus.CREATED,
                 Currency = restaurant.Currency,
                 Subtotal = subtotal,

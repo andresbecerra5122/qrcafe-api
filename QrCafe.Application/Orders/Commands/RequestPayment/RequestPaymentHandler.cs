@@ -18,11 +18,22 @@ namespace QrCafe.Application.Orders.Commands.RequestPayment
             if (order.Status != OrderStatus.DELIVERED)
                 throw new ArgumentException($"Order must be DELIVERED to request payment. Current: {order.Status}");
 
-            if (!Enum.TryParse<PaymentMethod>(request.PaymentMethod, true, out var method))
-                throw new ArgumentException("Invalid payment method. Use CASH or CARD.");
+            var requestedCode = request.PaymentMethod?.Trim().ToUpperInvariant();
+            if (string.IsNullOrWhiteSpace(requestedCode))
+                throw new ArgumentException("Payment method is required.");
+
+            var configuredMethod = await _db.RestaurantPaymentMethods.AsNoTracking()
+                .Where(m => m.RestaurantId == order.RestaurantId && m.IsActive && m.Code == requestedCode)
+                .Select(m => new { m.Code, m.Label })
+                .SingleOrDefaultAsync(ct);
+            if (configuredMethod is null)
+                throw new ArgumentException("Invalid payment method for this restaurant.");
 
             order.Status = OrderStatus.PAYMENT_PENDING;
-            order.PaymentMethod = method;
+            order.PaymentMethod = Enum.TryParse<PaymentMethod>(configuredMethod.Code, true, out var method)
+                ? method
+                : null;
+            order.PaymentMethodLabel = configuredMethod.Label;
             order.PaymentRequestedAt = DateTimeOffset.UtcNow;
             order.UpdatedAt = DateTimeOffset.UtcNow;
 

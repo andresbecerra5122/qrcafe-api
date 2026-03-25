@@ -60,7 +60,7 @@ namespace QrCafe.Application.Ops.Queries.GetOpsOrders
                         o.DeliveryReference,
                         o.DeliveryPhone,
                         Status = o.Status.ToString(),
-                        PaymentMethod = o.PaymentMethod != null ? o.PaymentMethod.ToString() : null,
+                        PaymentMethod = o.PaymentMethodLabel ?? (o.PaymentMethod != null ? o.PaymentMethod.ToString() : null),
                         o.PaymentRequestedAt,
                         o.Currency,
                         o.DeliveryFee,

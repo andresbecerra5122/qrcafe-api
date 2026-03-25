@@ -31,6 +31,13 @@ namespace QrCafe.Application.Menu.Queries.GetMenu
                 ))
                 .ToListAsync(ct);
 
+            var paymentMethods = await _db.RestaurantPaymentMethods.AsNoTracking()
+                .Where(m => m.RestaurantId == request.RestaurantId && m.IsActive)
+                .OrderBy(m => m.Sort)
+                .ThenBy(m => m.Label)
+                .Select(m => new GetMenuPaymentMethodItem(m.Id, m.Code, m.Label, m.Sort))
+                .ToListAsync(ct);
+
             var restaurant = await _db.Restaurants
                 .AsNoTracking()
                 .SingleAsync(r => r.Id == request.RestaurantId && r.IsActive, ct);
@@ -44,6 +51,7 @@ namespace QrCafe.Application.Menu.Queries.GetMenu
                 restaurant.EnableDeliveryCash,
                 restaurant.EnableDeliveryCard,
                 restaurant.EnablePayAtCashier,
+                paymentMethods,
                 categories,
                 products
             );

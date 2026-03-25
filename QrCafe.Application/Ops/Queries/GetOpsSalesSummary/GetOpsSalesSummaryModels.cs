@@ -4,11 +4,13 @@ using System.Collections.Generic;
 namespace QrCafe.Application.Ops.Queries.GetOpsSalesSummary
 {
     public record PaymentMethodSummary(decimal Amount, int OrdersCount);
+    public record PaymentMethodBreakdown(string MethodCode, string MethodLabel, decimal Amount, int OrdersCount);
     public record SalesSummaryOrderItem(
         Guid OrderId,
         long OrderNumber,
         decimal Total,
-        string? PaymentMethod,
+        string? PaymentMethodCode,
+        string? PaymentMethodLabel,
         DateTimeOffset OccurredAtUtc
     );
 
@@ -21,8 +23,7 @@ namespace QrCafe.Application.Ops.Queries.GetOpsSalesSummary
         int PaidOrdersCount,
         decimal TotalSales,
         decimal AverageTicket,
-        PaymentMethodSummary Cash,
-        PaymentMethodSummary Card,
+        IReadOnlyList<PaymentMethodBreakdown> PaymentMethods,
         IReadOnlyList<SalesSummaryOrderItem> Orders
     );
 }

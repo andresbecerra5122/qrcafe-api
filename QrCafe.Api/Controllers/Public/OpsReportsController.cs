@@ -43,19 +43,18 @@ namespace QrCafe.Api.Controllers.Public
                 PaidOrdersCount: result.PaidOrdersCount,
                 TotalSales: result.TotalSales,
                 AverageTicket: result.AverageTicket,
-                Cash: new OpsPaymentMethodSummaryDto(
-                    Amount: result.Cash.Amount,
-                    OrdersCount: result.Cash.OrdersCount
-                ),
-                Card: new OpsPaymentMethodSummaryDto(
-                    Amount: result.Card.Amount,
-                    OrdersCount: result.Card.OrdersCount
-                ),
+                PaymentMethods: result.PaymentMethods.Select(pm => new OpsSalesPaymentMethodBreakdownDto(
+                    MethodCode: pm.MethodCode,
+                    MethodLabel: pm.MethodLabel,
+                    Amount: pm.Amount,
+                    OrdersCount: pm.OrdersCount
+                )).ToList(),
                 Orders: result.Orders.Select(o => new OpsSalesSummaryOrderDto(
                     OrderId: o.OrderId,
                     OrderNumber: o.OrderNumber,
                     Total: o.Total,
-                    PaymentMethod: o.PaymentMethod,
+                    PaymentMethodCode: o.PaymentMethodCode,
+                    PaymentMethodLabel: o.PaymentMethodLabel,
                     OccurredAtUtc: o.OccurredAtUtc
                 )).ToList()
             ));

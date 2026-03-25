@@ -5,8 +5,16 @@ namespace QrCafe.Api.Dto.Ops
         Guid OrderId,
         long OrderNumber,
         decimal Total,
-        string? PaymentMethod,
+        string? PaymentMethodCode,
+        string? PaymentMethodLabel,
         DateTimeOffset OccurredAtUtc
+    );
+
+    public record OpsSalesPaymentMethodBreakdownDto(
+        string MethodCode,
+        string MethodLabel,
+        decimal Amount,
+        int OrdersCount
     );
 
     public record OpsSalesSummaryDto(
@@ -18,8 +26,7 @@ namespace QrCafe.Api.Dto.Ops
         int PaidOrdersCount,
         decimal TotalSales,
         decimal AverageTicket,
-        OpsPaymentMethodSummaryDto Cash,
-        OpsPaymentMethodSummaryDto Card,
+        IReadOnlyList<OpsSalesPaymentMethodBreakdownDto> PaymentMethods,
         IReadOnlyList<OpsSalesSummaryOrderDto> Orders
     );
 }

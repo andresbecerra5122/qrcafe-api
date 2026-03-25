@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 namespace QrCafe.Application.Menu.Queries.GetMenu
 {
+    public record GetMenuPaymentMethodItem(Guid Id, string Code, string Label, int Sort);
+
     public record GetMenuCategoryItem(Guid Id, string Name, int Sort);
 
     public record GetMenuProductItem(
@@ -28,6 +30,7 @@ namespace QrCafe.Application.Menu.Queries.GetMenu
         bool EnableDeliveryCash,
         bool EnableDeliveryCard,
         bool EnablePayAtCashier,
+        IReadOnlyList<GetMenuPaymentMethodItem> PaymentMethods,
         IReadOnlyList<GetMenuCategoryItem> Categories,
         IReadOnlyList<GetMenuProductItem> Products
     );

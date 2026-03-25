@@ -21,6 +21,7 @@ namespace QrCafe.Infrastructure.Data
         public DbSet<Payment> Payments => Set<Payment>();
         public DbSet<WaiterCall> WaiterCalls => Set<WaiterCall>();
         public DbSet<StaffUser> StaffUsers => Set<StaffUser>();
+        public DbSet<RestaurantPaymentMethod> RestaurantPaymentMethods => Set<RestaurantPaymentMethod>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -113,6 +114,7 @@ namespace QrCafe.Infrastructure.Data
                 e.Property(x => x.DeliveryFee).HasColumnName("delivery_fee");
                 e.Property(x => x.Total).HasColumnName("total");
                 e.Property(x => x.PaymentMethod).HasColumnName("payment_method").HasConversion<string?>();
+                e.Property(x => x.PaymentMethodLabel).HasColumnName("payment_method_label");
                 e.Property(x => x.PaymentRequestedAt).HasColumnName("payment_requested_at");
                 e.Property(x => x.CreatedAt).HasColumnName("created_at");
                 e.Property(x => x.PaidAt).HasColumnName("paid_at");
@@ -188,6 +190,20 @@ namespace QrCafe.Infrastructure.Data
                 e.Property(x => x.CreatedAt).HasColumnName("created_at");
                 e.Property(x => x.UpdatedAt).HasColumnName("updated_at");
                 e.Property(x => x.LastLoginAt).HasColumnName("last_login_at");
+            });
+
+            modelBuilder.Entity<RestaurantPaymentMethod>(e =>
+            {
+                e.ToTable("restaurant_payment_methods");
+                e.HasKey(x => x.Id);
+                e.Property(x => x.Id).HasColumnName("id");
+                e.Property(x => x.RestaurantId).HasColumnName("restaurant_id");
+                e.Property(x => x.Code).HasColumnName("code");
+                e.Property(x => x.Label).HasColumnName("label");
+                e.Property(x => x.IsActive).HasColumnName("is_active");
+                e.Property(x => x.Sort).HasColumnName("sort");
+                e.Property(x => x.CreatedAt).HasColumnName("created_at");
+                e.Property(x => x.UpdatedAt).HasColumnName("updated_at");
             });
         }
     }

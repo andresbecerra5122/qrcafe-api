@@ -56,7 +56,7 @@ namespace QrCafe.Application.Orders.Queries.GetActiveTableOrder
                     o.DeliveryPhone,
                     Status = o.Status.ToString(),
                     PaymentStatus = p != null ? p.Status.ToString() : null,
-                    PaymentMethod = o.PaymentMethod != null ? o.PaymentMethod.ToString() : null,
+                    PaymentMethod = o.PaymentMethodLabel ?? (o.PaymentMethod != null ? o.PaymentMethod.ToString() : null),
                     o.Currency,
                     o.Subtotal,
                     o.Tax,

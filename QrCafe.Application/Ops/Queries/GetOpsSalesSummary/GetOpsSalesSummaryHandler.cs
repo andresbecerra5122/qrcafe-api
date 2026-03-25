@@ -41,6 +41,7 @@ namespace QrCafe.Application.Ops.Queries.GetOpsSalesSummary
                         o.OrderNumber,
                         o.Total,
                         o.PaymentMethod,
+                        o.PaymentMethodLabel,
                         OccurredAtUtc = o.PaidAt ?? o.UpdatedAt
                     })
                     .ToListAsync(ct)
@@ -55,6 +56,7 @@ namespace QrCafe.Application.Ops.Queries.GetOpsSalesSummary
                         o.OrderNumber,
                         o.Total,
                         o.PaymentMethod,
+                        o.PaymentMethodLabel,
                         OccurredAtUtc = o.CreatedAt
                     })
                     .ToListAsync(ct);
@@ -65,15 +67,36 @@ namespace QrCafe.Application.Ops.Queries.GetOpsSalesSummary
                 ? decimal.Round(totalSales / paidOrdersCount, 2)
                 : 0m;
 
-            var cashOrders = filteredOrders.Where(o => o.PaymentMethod == PaymentMethod.CASH).ToList();
-            var cardOrders = filteredOrders.Where(o => o.PaymentMethod == PaymentMethod.CARD).ToList();
+            var paymentMethods = filteredOrders
+                .GroupBy(o => new
+                {
+                    Code = o.PaymentMethod?.ToString() ?? "N/A",
+                    Label = o.PaymentMethodLabel ?? (o.PaymentMethod != null
+                        ? o.PaymentMethod == PaymentMethod.CASH ? "Efectivo"
+                        : o.PaymentMethod == PaymentMethod.CARD ? "Tarjeta"
+                        : o.PaymentMethod.ToString()
+                        : "N/A")
+                })
+                .Select(g => new PaymentMethodBreakdown(
+                    MethodCode: g.Key.Code,
+                    MethodLabel: g.Key.Label ?? "N/A",
+                    Amount: g.Sum(x => x.Total),
+                    OrdersCount: g.Count()
+                ))
+                .OrderByDescending(x => x.Amount)
+                .ToList();
             var orders = filteredOrders
                 .OrderByDescending(o => o.OccurredAtUtc)
                 .Select(o => new SalesSummaryOrderItem(
                     OrderId: o.Id,
                     OrderNumber: o.OrderNumber,
                     Total: o.Total,
-                    PaymentMethod: o.PaymentMethod?.ToString(),
+                    PaymentMethodCode: o.PaymentMethod?.ToString(),
+                    PaymentMethodLabel: o.PaymentMethodLabel ?? (o.PaymentMethod != null
+                        ? o.PaymentMethod == PaymentMethod.CASH ? "Efectivo"
+                        : o.PaymentMethod == PaymentMethod.CARD ? "Tarjeta"
+                        : o.PaymentMethod.ToString()
+                        : null),
                     OccurredAtUtc: o.OccurredAtUtc
                 ))
                 .ToList();
@@ -87,14 +110,7 @@ namespace QrCafe.Application.Ops.Queries.GetOpsSalesSummary
                 PaidOrdersCount: paidOrdersCount,
                 TotalSales: totalSales,
                 AverageTicket: averageTicket,
-                Cash: new PaymentMethodSummary(
-                    Amount: cashOrders.Sum(o => o.Total),
-                    OrdersCount: cashOrders.Count
-                ),
-                Card: new PaymentMethodSummary(
-                    Amount: cardOrders.Sum(o => o.Total),
-                    OrdersCount: cardOrders.Count
-                ),
+                PaymentMethods: paymentMethods,
                 Orders: orders
             );
         }

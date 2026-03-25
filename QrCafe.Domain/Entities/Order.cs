@@ -33,6 +33,7 @@ namespace QrCafe.Domain.Entities
         public decimal Total { get; set; }
 
         public PaymentMethod? PaymentMethod { get; set; }
+        public string? PaymentMethodLabel { get; set; }
         public DateTimeOffset? PaymentRequestedAt { get; set; }
 
         public DateTimeOffset CreatedAt { get; set; }
