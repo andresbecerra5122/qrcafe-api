@@ -8,5 +8,6 @@ namespace QrCafe.Api.Dto.Ops
         public bool? EnableDeliveryCard { get; set; }
         public bool? EnablePayAtCashier { get; set; }
         public bool? EnableKitchenBarSplit { get; set; }
+        public int? AvgPreparationMinutes { get; set; }
     }
 }

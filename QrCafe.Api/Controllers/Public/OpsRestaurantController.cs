@@ -44,7 +44,8 @@ namespace QrCafe.Api.Controllers.Public
                     x.EnableDeliveryCash,
                     x.EnableDeliveryCard,
                     x.EnablePayAtCashier,
-                    x.EnableKitchenBarSplit
+                    x.EnableKitchenBarSplit,
+                    x.AvgPreparationMinutes
                 })
                 .SingleOrDefaultAsync(ct);
 
@@ -61,6 +62,7 @@ namespace QrCafe.Api.Controllers.Public
                 r.EnableDeliveryCard,
                 r.EnablePayAtCashier,
                 r.EnableKitchenBarSplit,
+                r.AvgPreparationMinutes,
                 PaymentMethods = methods.Select(m => new RestaurantPaymentMethodDto(m.Id, m.Code, m.Label, m.Sort)).ToList()
             });
         }
@@ -105,6 +107,15 @@ namespace QrCafe.Api.Controllers.Public
             {
                 restaurant.EnableKitchenBarSplit = req.EnableKitchenBarSplit.Value;
             }
+            if (req.AvgPreparationMinutes.HasValue)
+            {
+                var minutes = req.AvgPreparationMinutes.Value;
+                if (minutes < 1 || minutes > 600)
+                {
+                    return BadRequest(new { error = "AvgPreparationMinutes must be between 1 and 600." });
+                }
+                restaurant.AvgPreparationMinutes = minutes;
+            }
 
             restaurant.UpdatedAt = DateTimeOffset.UtcNow;
             await _db.SaveChangesAsync(ct);
@@ -121,6 +132,7 @@ namespace QrCafe.Api.Controllers.Public
                 restaurant.EnableDeliveryCard,
                 restaurant.EnablePayAtCashier,
                 restaurant.EnableKitchenBarSplit,
+                restaurant.AvgPreparationMinutes,
                 PaymentMethods = methods.Select(m => new RestaurantPaymentMethodDto(m.Id, m.Code, m.Label, m.Sort)).ToList()
             });
         }

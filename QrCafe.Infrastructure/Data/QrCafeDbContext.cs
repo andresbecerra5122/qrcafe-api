@@ -45,6 +45,7 @@ namespace QrCafe.Infrastructure.Data
                 e.Property(x => x.EnableDeliveryCard).HasColumnName("enable_delivery_card");
                 e.Property(x => x.EnablePayAtCashier).HasColumnName("enable_pay_at_cashier");
                 e.Property(x => x.EnableKitchenBarSplit).HasColumnName("enable_kitchen_bar_split");
+                e.Property(x => x.AvgPreparationMinutes).HasColumnName("avg_preparation_minutes");
                 e.Property(x => x.CreatedAt).HasColumnName("created_at");
                 e.Property(x => x.UpdatedAt).HasColumnName("updated_at");
             });

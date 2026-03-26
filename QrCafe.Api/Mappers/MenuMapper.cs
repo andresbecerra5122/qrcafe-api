@@ -14,6 +14,7 @@ namespace QrCafe.Api.Mappers
             r.EnableDeliveryCash,
             r.EnableDeliveryCard,
             r.EnablePayAtCashier,
+            r.AvgPreparationMinutes,
             r.PaymentMethods.Select(pm => new MenuPaymentMethodDto(pm.Id, pm.Code, pm.Label, pm.Sort)).ToList(),
             r.Categories.Select(c => new CategoryDto(c.Id, c.Name, c.Sort)).ToList(),
             r.Products.Select(p => new ProductDto(

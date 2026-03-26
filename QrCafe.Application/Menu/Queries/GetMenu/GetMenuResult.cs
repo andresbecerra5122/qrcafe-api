@@ -30,6 +30,7 @@ namespace QrCafe.Application.Menu.Queries.GetMenu
         bool EnableDeliveryCash,
         bool EnableDeliveryCard,
         bool EnablePayAtCashier,
+        int AvgPreparationMinutes,
         IReadOnlyList<GetMenuPaymentMethodItem> PaymentMethods,
         IReadOnlyList<GetMenuCategoryItem> Categories,
         IReadOnlyList<GetMenuProductItem> Products
