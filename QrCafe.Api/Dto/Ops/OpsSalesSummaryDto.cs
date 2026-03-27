@@ -5,6 +5,7 @@ namespace QrCafe.Api.Dto.Ops
         Guid OrderId,
         long OrderNumber,
         decimal Total,
+        decimal TipAmount,
         string? PaymentMethodCode,
         string? PaymentMethodLabel,
         DateTimeOffset OccurredAtUtc
@@ -25,6 +26,7 @@ namespace QrCafe.Api.Dto.Ops
         DateTimeOffset RangeEndUtc,
         int PaidOrdersCount,
         decimal TotalSales,
+        decimal TipTotal,
         decimal AverageTicket,
         IReadOnlyList<OpsSalesPaymentMethodBreakdownDto> PaymentMethods,
         IReadOnlyList<OpsSalesSummaryOrderDto> Orders

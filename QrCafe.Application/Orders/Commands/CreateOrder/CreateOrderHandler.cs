@@ -165,7 +165,10 @@ namespace QrCafe.Application.Orders.Commands.CreateOrder
 
                 existingOpenTableOrder.Subtotal += subtotal;
                 existingOpenTableOrder.Tax = Math.Round(existingOpenTableOrder.Subtotal * restaurant.TaxRate, 2);
-                existingOpenTableOrder.Total = existingOpenTableOrder.Subtotal + existingOpenTableOrder.Tax;
+                existingOpenTableOrder.Total = existingOpenTableOrder.Subtotal
+                    + existingOpenTableOrder.Tax
+                    + existingOpenTableOrder.DeliveryFee
+                    + existingOpenTableOrder.TipAmount;
                 existingOpenTableOrder.UpdatedAt = now;
 
                 if (existingOpenTableOrder.Status is OrderStatus.READY or OrderStatus.DELIVERED)

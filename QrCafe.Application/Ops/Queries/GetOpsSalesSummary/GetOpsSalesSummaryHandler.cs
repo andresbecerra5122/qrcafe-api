@@ -40,6 +40,7 @@ namespace QrCafe.Application.Ops.Queries.GetOpsSalesSummary
                         o.Id,
                         o.OrderNumber,
                         o.Total,
+                        o.TipAmount,
                         o.PaymentMethod,
                         o.PaymentMethodLabel,
                         OccurredAtUtc = o.PaidAt ?? o.UpdatedAt
@@ -55,6 +56,7 @@ namespace QrCafe.Application.Ops.Queries.GetOpsSalesSummary
                         o.Id,
                         o.OrderNumber,
                         o.Total,
+                        o.TipAmount,
                         o.PaymentMethod,
                         o.PaymentMethodLabel,
                         OccurredAtUtc = o.CreatedAt
@@ -63,6 +65,7 @@ namespace QrCafe.Application.Ops.Queries.GetOpsSalesSummary
 
             var paidOrdersCount = filteredOrders.Count;
             var totalSales = filteredOrders.Sum(o => o.Total);
+            var tipTotal = filteredOrders.Sum(o => o.TipAmount);
             var averageTicket = paidOrdersCount > 0
                 ? decimal.Round(totalSales / paidOrdersCount, 2)
                 : 0m;
@@ -91,6 +94,7 @@ namespace QrCafe.Application.Ops.Queries.GetOpsSalesSummary
                     OrderId: o.Id,
                     OrderNumber: o.OrderNumber,
                     Total: o.Total,
+                    TipAmount: o.TipAmount,
                     PaymentMethodCode: o.PaymentMethod?.ToString(),
                     PaymentMethodLabel: o.PaymentMethodLabel ?? (o.PaymentMethod != null
                         ? o.PaymentMethod == PaymentMethod.CASH ? "Efectivo"
@@ -109,6 +113,7 @@ namespace QrCafe.Application.Ops.Queries.GetOpsSalesSummary
                 RangeEndUtc: rangeEndUtc,
                 PaidOrdersCount: paidOrdersCount,
                 TotalSales: totalSales,
+                TipTotal: tipTotal,
                 AverageTicket: averageTicket,
                 PaymentMethods: paymentMethods,
                 Orders: orders

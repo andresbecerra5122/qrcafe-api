@@ -181,7 +181,7 @@ namespace QrCafe.Api.Controllers.Public
                 return NotFound();
             }
 
-            await _mediator.Send(new CollectOrderCommand(orderId, req.PaymentMethod), ct);
+            await _mediator.Send(new CollectOrderCommand(orderId, req.PaymentMethod, req.TipMode, req.TipAmount), ct);
             return NoContent();
         }
 
@@ -202,6 +202,6 @@ namespace QrCafe.Api.Controllers.Public
         }
     }
 
-    public record CollectOrderDto(string PaymentMethod);
+    public record CollectOrderDto(string PaymentMethod, string? TipMode = null, decimal? TipAmount = null);
     public record UpdateOrderItemStateDto(bool Value);
 }

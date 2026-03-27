@@ -46,6 +46,7 @@ namespace QrCafe.Infrastructure.Data
                 e.Property(x => x.EnablePayAtCashier).HasColumnName("enable_pay_at_cashier");
                 e.Property(x => x.EnableKitchenBarSplit).HasColumnName("enable_kitchen_bar_split");
                 e.Property(x => x.AvgPreparationMinutes).HasColumnName("avg_preparation_minutes");
+                e.Property(x => x.SuggestedTipPercent).HasColumnName("suggested_tip_percent");
                 e.Property(x => x.CreatedAt).HasColumnName("created_at");
                 e.Property(x => x.UpdatedAt).HasColumnName("updated_at");
             });
@@ -113,6 +114,9 @@ namespace QrCafe.Infrastructure.Data
                 e.Property(x => x.Subtotal).HasColumnName("subtotal");
                 e.Property(x => x.Tax).HasColumnName("tax");
                 e.Property(x => x.DeliveryFee).HasColumnName("delivery_fee");
+                e.Property(x => x.TipAmount).HasColumnName("tip_amount");
+                e.Property(x => x.TipPercentApplied).HasColumnName("tip_percent_applied");
+                e.Property(x => x.TipSource).HasColumnName("tip_source").HasConversion<string?>();
                 e.Property(x => x.Total).HasColumnName("total");
                 e.Property(x => x.PaymentMethod).HasColumnName("payment_method").HasConversion<string?>();
                 e.Property(x => x.PaymentMethodLabel).HasColumnName("payment_method_label");

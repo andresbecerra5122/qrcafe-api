@@ -62,7 +62,7 @@ namespace QrCafe.Api.Controllers.Public
         [HttpPost("{orderId:guid}/request-payment")]
         public async Task<IActionResult> RequestPayment(Guid orderId, [FromBody] RequestPaymentDto req, CancellationToken ct)
         {
-            await _mediator.Send(new RequestPaymentCommand(orderId, req.PaymentMethod), ct);
+            await _mediator.Send(new RequestPaymentCommand(orderId, req.PaymentMethod, req.TipMode, req.TipAmount), ct);
             return NoContent();
         }
     }

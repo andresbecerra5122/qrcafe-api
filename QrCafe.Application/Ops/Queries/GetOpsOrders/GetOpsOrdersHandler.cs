@@ -64,6 +64,8 @@ namespace QrCafe.Application.Ops.Queries.GetOpsOrders
                         o.PaymentRequestedAt,
                         o.Currency,
                         o.DeliveryFee,
+                        o.TipAmount,
+                        TipSource = o.TipSource != null ? o.TipSource.ToString() : null,
                         o.Total,
                         o.CreatedAt
                     };
@@ -104,6 +106,8 @@ namespace QrCafe.Application.Ops.Queries.GetOpsOrders
                 o.PaymentRequestedAt,
                 o.Currency,
                 o.DeliveryFee,
+                o.TipAmount,
+                o.TipSource,
                 o.Total,
                 o.CreatedAt,
                 itemsByOrder.GetValueOrDefault(o.Id, Array.Empty<OpsOrderItemDetail>())

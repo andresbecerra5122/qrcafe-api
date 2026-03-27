@@ -30,17 +30,69 @@ namespace QrCafe.Application.Ops.Commands.CollectOrder
             if (configuredMethod is null)
                 throw new ArgumentException("Invalid payment method for this restaurant.");
 
+            var restaurantSettings = await _db.Restaurants.AsNoTracking()
+                .Where(r => r.Id == order.RestaurantId)
+                .Select(r => new { r.SuggestedTipPercent })
+                .SingleOrDefaultAsync(ct)
+                ?? throw new KeyNotFoundException("Restaurant not found.");
+
+            if (order.TipSource != TipSource.CUSTOMER)
+            {
+                var (tipAmount, tipPercentApplied) = ResolveTip(
+                    order.Subtotal,
+                    restaurantSettings.SuggestedTipPercent,
+                    request.TipMode,
+                    request.TipAmount,
+                    order.OrderType == OrderType.DINE_IN
+                );
+                order.TipAmount = tipAmount;
+                order.TipPercentApplied = tipPercentApplied;
+                order.TipSource = tipAmount > 0 ? TipSource.WAITER : null;
+            }
+
             var now = DateTimeOffset.UtcNow;
             order.PaymentMethod = Enum.TryParse<PaymentMethod>(configuredMethod.Code, true, out var method)
                 ? method
                 : null;
             order.PaymentMethodLabel = configuredMethod.Label;
+            order.Total = order.Subtotal + order.Tax + order.DeliveryFee + order.TipAmount;
             order.PaymentRequestedAt = now;
             order.PaidAt = now;
             order.Status = OrderStatus.PAID;
             order.UpdatedAt = now;
 
             await _db.SaveChangesAsync(ct);
+        }
+
+        private static (decimal tipAmount, decimal? tipPercentApplied) ResolveTip(
+            decimal subtotal,
+            decimal suggestedTipPercent,
+            string? rawTipMode,
+            decimal? requestedTipAmount,
+            bool allowTipSelection)
+        {
+            if (!allowTipSelection)
+            {
+                return (0m, null);
+            }
+
+            var tipMode = (rawTipMode ?? "NONE").Trim().ToUpperInvariant();
+            if (tipMode == "SUGGESTED")
+            {
+                var safePercent = Math.Clamp(suggestedTipPercent, 0m, 100m);
+                var amount = decimal.Round(subtotal * (safePercent / 100m), 2);
+                return (amount, safePercent);
+            }
+
+            if (tipMode == "CUSTOM")
+            {
+                var amount = requestedTipAmount ?? throw new ArgumentException("Tip amount is required for CUSTOM tip mode.");
+                if (amount < 0)
+                    throw new ArgumentException("Tip amount must be >= 0.");
+                return (decimal.Round(amount, 2), null);
+            }
+
+            return (0m, null);
         }
     }
 }

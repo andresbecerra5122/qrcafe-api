@@ -18,6 +18,7 @@ namespace QrCafe.Application.Ops.Queries.GetOpsProductSalesSummary
         DateTimeOffset RangeEndUtc,
         int TotalItemsSold,
         decimal TotalRevenue,
+        decimal TipTotal,
         IReadOnlyList<ProductSalesSummaryItem> Products
     );
 }

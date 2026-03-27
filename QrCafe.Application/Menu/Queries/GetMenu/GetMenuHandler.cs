@@ -52,6 +52,7 @@ namespace QrCafe.Application.Menu.Queries.GetMenu
                 restaurant.EnableDeliveryCard,
                 restaurant.EnablePayAtCashier,
                 restaurant.AvgPreparationMinutes,
+                restaurant.SuggestedTipPercent,
                 paymentMethods,
                 categories,
                 products

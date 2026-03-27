@@ -42,6 +42,7 @@ namespace QrCafe.Api.Controllers.Public
                 RangeEndUtc: result.RangeEndUtc,
                 PaidOrdersCount: result.PaidOrdersCount,
                 TotalSales: result.TotalSales,
+                TipTotal: result.TipTotal,
                 AverageTicket: result.AverageTicket,
                 PaymentMethods: result.PaymentMethods.Select(pm => new OpsSalesPaymentMethodBreakdownDto(
                     MethodCode: pm.MethodCode,
@@ -53,6 +54,7 @@ namespace QrCafe.Api.Controllers.Public
                     OrderId: o.OrderId,
                     OrderNumber: o.OrderNumber,
                     Total: o.Total,
+                    TipAmount: o.TipAmount,
                     PaymentMethodCode: o.PaymentMethodCode,
                     PaymentMethodLabel: o.PaymentMethodLabel,
                     OccurredAtUtc: o.OccurredAtUtc
@@ -82,6 +84,7 @@ namespace QrCafe.Api.Controllers.Public
                 RangeEndUtc: result.RangeEndUtc,
                 TotalItemsSold: result.TotalItemsSold,
                 TotalRevenue: result.TotalRevenue,
+                TipTotal: result.TipTotal,
                 Products: result.Products.Select(p => new OpsProductSalesSummaryItemDto(
                     ProductId: p.ProductId,
                     ProductName: p.ProductName,

@@ -15,6 +15,7 @@ namespace QrCafe.Api.Dto.Ops
         DateTimeOffset RangeEndUtc,
         int TotalItemsSold,
         decimal TotalRevenue,
+        decimal TipTotal,
         IReadOnlyList<OpsProductSalesSummaryItemDto> Products
     );
 }

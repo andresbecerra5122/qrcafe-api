@@ -9,6 +9,7 @@ namespace QrCafe.Application.Ops.Queries.GetOpsSalesSummary
         Guid OrderId,
         long OrderNumber,
         decimal Total,
+        decimal TipAmount,
         string? PaymentMethodCode,
         string? PaymentMethodLabel,
         DateTimeOffset OccurredAtUtc
@@ -22,6 +23,7 @@ namespace QrCafe.Application.Ops.Queries.GetOpsSalesSummary
         DateTimeOffset RangeEndUtc,
         int PaidOrdersCount,
         decimal TotalSales,
+        decimal TipTotal,
         decimal AverageTicket,
         IReadOnlyList<PaymentMethodBreakdown> PaymentMethods,
         IReadOnlyList<SalesSummaryOrderItem> Orders

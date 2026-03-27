@@ -30,6 +30,7 @@ namespace QrCafe.Domain.Entities
         public bool EnablePayAtCashier { get; set; } = false;
         public bool EnableKitchenBarSplit { get; set; } = false;
         public int AvgPreparationMinutes { get; set; } = 15;
+        public decimal SuggestedTipPercent { get; set; } = 10m;
 
         public DateTimeOffset CreatedAt { get; set; }
         public DateTimeOffset UpdatedAt { get; set; }

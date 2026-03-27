@@ -71,6 +71,20 @@ namespace QrCafe.Application.Ops.Queries.GetOpsProductSalesSummary
                 .ThenBy(x => x.ProductName)
                 .ToList();
 
+            var tipTotal = basis == "paid"
+                ? await _db.Orders.AsNoTracking()
+                    .Where(o => o.RestaurantId == request.RestaurantId
+                        && o.Status == OrderStatus.PAID
+                        && (o.PaidAt ?? o.UpdatedAt) >= rangeStartUtc
+                        && (o.PaidAt ?? o.UpdatedAt) < rangeEndUtc)
+                    .SumAsync(o => o.TipAmount, ct)
+                : await _db.Orders.AsNoTracking()
+                    .Where(o => o.RestaurantId == request.RestaurantId
+                        && o.Status != OrderStatus.CANCELLED
+                        && o.CreatedAt >= rangeStartUtc
+                        && o.CreatedAt < rangeEndUtc)
+                    .SumAsync(o => o.TipAmount, ct);
+
             return new GetOpsProductSalesSummaryResult(
                 Period: period,
                 Basis: basis,
@@ -79,6 +93,7 @@ namespace QrCafe.Application.Ops.Queries.GetOpsProductSalesSummary
                 RangeEndUtc: rangeEndUtc,
                 TotalItemsSold: grouped.Sum(x => x.QtySold),
                 TotalRevenue: grouped.Sum(x => x.Revenue),
+                TipTotal: tipTotal,
                 Products: grouped
             );
         }

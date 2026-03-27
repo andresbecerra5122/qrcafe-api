@@ -12,6 +12,7 @@ namespace QrCafe.Api.Dto.Menu
         bool EnableDeliveryCard,
         bool EnablePayAtCashier,
         int AvgPreparationMinutes,
+        decimal SuggestedTipPercent,
         IReadOnlyList<MenuPaymentMethodDto> PaymentMethods,
         IReadOnlyList<CategoryDto> Categories,
         IReadOnlyList<ProductDto> Products

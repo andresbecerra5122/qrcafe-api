@@ -26,7 +26,7 @@ namespace QrCafe.Application.Ops.Commands.SetDeliveryFee
                 throw new InvalidOperationException("Cannot edit delivery fee for paid or cancelled orders.");
 
             order.DeliveryFee = Math.Round(request.DeliveryFee, 2);
-            order.Total = order.Subtotal + order.Tax + order.DeliveryFee;
+            order.Total = order.Subtotal + order.Tax + order.DeliveryFee + order.TipAmount;
             order.UpdatedAt = DateTimeOffset.UtcNow;
 
             await _db.SaveChangesAsync(ct);
