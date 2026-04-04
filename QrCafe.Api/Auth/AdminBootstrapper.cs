@@ -64,6 +64,9 @@ namespace QrCafe.Api.Auth
                 ALTER TABLE IF EXISTS public.categories
                     ADD COLUMN IF NOT EXISTS prep_station text NOT NULL DEFAULT 'KITCHEN';
 
+                ALTER TABLE IF EXISTS public.products
+                    ADD COLUMN IF NOT EXISTS prep_station text NULL;
+
                 ALTER TABLE IF EXISTS public.orders
                     ADD COLUMN IF NOT EXISTS delivery_address text NULL,
                     ADD COLUMN IF NOT EXISTS delivery_reference text NULL,

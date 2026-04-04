@@ -29,6 +29,10 @@ namespace QrCafe.Domain.Entities
         public bool EnableDeliveryCard { get; set; } = true;
         public bool EnablePayAtCashier { get; set; } = false;
         public bool EnableKitchenBarSplit { get; set; } = false;
+        /// <summary>
+        /// Meseros pueden mover una cuenta DINE_IN a otra mesa activa (cliente usa el QR de la nueva mesa).
+        /// </summary>
+        public bool EnableTableReassignment { get; set; } = false;
         public int AvgPreparationMinutes { get; set; } = 15;
         public decimal SuggestedTipPercent { get; set; } = 10m;
 

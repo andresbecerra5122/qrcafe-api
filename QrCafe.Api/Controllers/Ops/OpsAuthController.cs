@@ -5,6 +5,7 @@ using System.Security.Claims;
 using Microsoft.Extensions.Options;
 using QrCafe.Api.Auth;
 using QrCafe.Api.Dto.Auth;
+using QrCafe.Domain.Entities;
 using QrCafe.Infrastructure.Data;
 
 namespace QrCafe.Api.Controllers.Ops
@@ -40,12 +41,23 @@ namespace QrCafe.Api.Controllers.Ops
                 return BadRequest(new { error = "Email and password are required." });
             }
 
-            var staff = await _db.StaffUsers.SingleOrDefaultAsync(
-                u => u.Email == email && u.IsActive,
-                ct
-            );
+            // Mismo email puede existir en varios restaurantes (índice único es por restaurante).
+            // No usar SingleOrDefault: más de una fila lanzaría y devolvería 500 HTML sin JSON de error.
+            var candidates = await _db.StaffUsers
+                .Where(u => u.Email == email && u.IsActive)
+                .ToListAsync(ct);
 
-            if (staff is null || !_passwordHasher.Verify(req.Password, staff.PasswordHash))
+            StaffUser? staff = null;
+            foreach (var c in candidates)
+            {
+                if (_passwordHasher.Verify(req.Password, c.PasswordHash))
+                {
+                    staff = c;
+                    break;
+                }
+            }
+
+            if (staff is null)
             {
                 return Unauthorized(new { error = "Invalid credentials." });
             }

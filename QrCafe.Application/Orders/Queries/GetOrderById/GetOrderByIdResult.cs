@@ -4,6 +4,7 @@ namespace QrCafe.Application.Orders.Queries.GetOrderById
         Guid OrderId,
         string OrderType,
         int? TableNumber,
+        string? TableToken,
         string? CustomerName,
         string? DeliveryAddress,
         string? DeliveryReference,

@@ -45,6 +45,7 @@ namespace QrCafe.Api.Controllers.Public
                     x.EnableDeliveryCard,
                     x.EnablePayAtCashier,
                     x.EnableKitchenBarSplit,
+                    x.EnableTableReassignment,
                     x.AvgPreparationMinutes,
                     x.SuggestedTipPercent
                 })
@@ -63,6 +64,7 @@ namespace QrCafe.Api.Controllers.Public
                 r.EnableDeliveryCard,
                 r.EnablePayAtCashier,
                 r.EnableKitchenBarSplit,
+                r.EnableTableReassignment,
                 r.AvgPreparationMinutes,
                 r.SuggestedTipPercent,
                 PaymentMethods = methods.Select(m => new RestaurantPaymentMethodDto(m.Id, m.Code, m.Label, m.Sort)).ToList()
@@ -109,6 +111,10 @@ namespace QrCafe.Api.Controllers.Public
             {
                 restaurant.EnableKitchenBarSplit = req.EnableKitchenBarSplit.Value;
             }
+            if (req.EnableTableReassignment.HasValue)
+            {
+                restaurant.EnableTableReassignment = req.EnableTableReassignment.Value;
+            }
             if (req.AvgPreparationMinutes.HasValue)
             {
                 var minutes = req.AvgPreparationMinutes.Value;
@@ -143,6 +149,7 @@ namespace QrCafe.Api.Controllers.Public
                 restaurant.EnableDeliveryCard,
                 restaurant.EnablePayAtCashier,
                 restaurant.EnableKitchenBarSplit,
+                restaurant.EnableTableReassignment,
                 restaurant.AvgPreparationMinutes,
                 restaurant.SuggestedTipPercent,
                 PaymentMethods = methods.Select(m => new RestaurantPaymentMethodDto(m.Id, m.Code, m.Label, m.Sort)).ToList()

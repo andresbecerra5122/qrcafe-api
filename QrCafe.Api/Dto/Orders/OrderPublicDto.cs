@@ -4,6 +4,7 @@ namespace QrCafe.Api.Dto.Orders
         Guid OrderId,
         string OrderType,
         int? TableNumber,
+        string? TableToken,
         string? CustomerName,
         string? DeliveryAddress,
         string? DeliveryReference,

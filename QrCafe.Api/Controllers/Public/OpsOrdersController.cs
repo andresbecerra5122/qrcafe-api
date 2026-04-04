@@ -10,6 +10,7 @@ using QrCafe.Application.Ops.Commands.UpdateOrderItemPrepared;
 using QrCafe.Application.Ops.Commands.UpdateOrderItemDelivered;
 using QrCafe.Application.Ops.Commands.CollectOrder;
 using QrCafe.Application.Ops.Commands.SetDeliveryFee;
+using QrCafe.Application.Ops.Commands.ReassignOrderToTable;
 using QrCafe.Application.Ops.Queries.GetOpsOrders;
 using QrCafe.Application.Orders.Commands.CreateOrder;
 using QrCafe.Infrastructure.Data;
@@ -200,8 +201,44 @@ namespace QrCafe.Api.Controllers.Public
             await _mediator.Send(new SetDeliveryFeeCommand(orderId, req.DeliveryFee), ct);
             return NoContent();
         }
+
+        [HttpPatch("{orderId:guid}/table")]
+        [Authorize(Policy = AuthConstants.PolicyWaiterOrAdmin)]
+        public async Task<IActionResult> ReassignTable(
+            Guid orderId,
+            [FromBody] ReassignOrderTableRequestDto req,
+            CancellationToken ct)
+        {
+            var restaurantId = User.GetRestaurantId();
+            var hasAccess = await _db.Orders.AsNoTracking()
+                .AnyAsync(o => o.Id == orderId && o.RestaurantId == restaurantId, ct);
+            if (!hasAccess)
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                await _mediator.Send(new ReassignOrderToTableCommand(orderId, restaurantId, req.TableNumber), ct);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { error = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+
+            return NoContent();
+        }
     }
 
+    public record ReassignOrderTableRequestDto(int TableNumber);
     public record CollectOrderDto(string PaymentMethod, string? TipMode = null, decimal? TipAmount = null);
     public record UpdateOrderItemStateDto(bool Value);
 }
